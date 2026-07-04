@@ -1,0 +1,279 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/combat/combat_screen.gd" id="1_script"]
+
+[node name="CombatScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Root" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="EnemyPanel" type="PanelContainer" parent="Margin/Root"]
+layout_mode = 2
+
+[node name="EnemyBox" type="VBoxContainer" parent="Margin/Root/EnemyPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EnemyNameLabel" type="Label" parent="Margin/Root/EnemyPanel/EnemyBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Enemy"
+
+[node name="EnemyHPRow" type="HBoxContainer" parent="Margin/Root/EnemyPanel/EnemyBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HPTag" type="Label" parent="Margin/Root/EnemyPanel/EnemyBox/EnemyHPRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "HP"
+
+[node name="EnemyHPBar" type="ProgressBar" parent="Margin/Root/EnemyPanel/EnemyBox/EnemyHPRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+show_percentage = false
+
+[node name="EnemyHPValue" type="Label" parent="Margin/Root/EnemyPanel/EnemyBox/EnemyHPRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 2
+text = "0 / 0"
+
+[node name="IntentLabel" type="Label" parent="Margin/Root/EnemyPanel/EnemyBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+autowrap_mode = 2
+text = "..."
+
+[node name="LogText" type="RichTextLabel" parent="Margin/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 20
+scroll_following = true
+
+[node name="PlayerPanel" type="PanelContainer" parent="Margin/Root"]
+layout_mode = 2
+
+[node name="PlayerBox" type="VBoxContainer" parent="Margin/Root/PlayerPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PlayerHPRow" type="HBoxContainer" parent="Margin/Root/PlayerPanel/PlayerBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HPTag" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/PlayerHPRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "HP"
+
+[node name="PlayerHPBar" type="ProgressBar" parent="Margin/Root/PlayerPanel/PlayerBox/PlayerHPRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+show_percentage = false
+
+[node name="PlayerHPValue" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/PlayerHPRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 2
+text = "0 / 0"
+
+[node name="StaminaRow" type="HBoxContainer" parent="Margin/Root/PlayerPanel/PlayerBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="StaminaTag" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/StaminaRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Stamina"
+
+[node name="StaminaBar" type="ProgressBar" parent="Margin/Root/PlayerPanel/PlayerBox/StaminaRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+show_percentage = false
+
+[node name="StaminaValue" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/StaminaRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 2
+text = "0 / 0"
+
+[node name="InitiativeRow" type="HBoxContainer" parent="Margin/Root/PlayerPanel/PlayerBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="InitiativeTag" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/InitiativeRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Initiative"
+
+[node name="InitiativeBar" type="ProgressBar" parent="Margin/Root/PlayerPanel/PlayerBox/InitiativeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+show_percentage = false
+
+[node name="InitiativeValue" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/InitiativeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 2
+text = "0"
+
+[node name="PositionRow" type="HBoxContainer" parent="Margin/Root"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FrontlineButton" type="Button" parent="Margin/Root/PositionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+text = "Frontline"
+
+[node name="BalancedButton" type="Button" parent="Margin/Root/PositionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+text = "Balanced"
+
+[node name="GuardedButton" type="Button" parent="Margin/Root/PositionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+text = "Guarded"
+
+[node name="ActionsGrid" type="GridContainer" parent="Margin/Root"]
+layout_mode = 2
+columns = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="AttackButton" type="Button" parent="Margin/Root/ActionsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 26
+text = "Attack"
+
+[node name="HeavyAttackButton" type="Button" parent="Margin/Root/ActionsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 26
+text = "Heavy"
+
+[node name="GuardButton" type="Button" parent="Margin/Root/ActionsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 26
+text = "Guard"
+
+[node name="ParryButton" type="Button" parent="Margin/Root/ActionsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 26
+text = "Parry"
+
+[node name="DodgeButton" type="Button" parent="Margin/Root/ActionsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 26
+text = "Dodge"
+
+[node name="EndPanel" type="PanelContainer" parent="Margin/Root"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="EndBox" type="VBoxContainer" parent="Margin/Root/EndPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ResultLabel" type="Label" parent="Margin/Root/EndPanel/EndBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+autowrap_mode = 2
+text = "Result"
+
+[node name="RestartRow" type="HBoxContainer" parent="Margin/Root/EndPanel/EndBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FightWolfButton" type="Button" parent="Margin/Root/EndPanel/EndBox/RestartRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+text = "Fight a Wolf"
+
+[node name="FightDireWolfButton" type="Button" parent="Margin/Root/EndPanel/EndBox/RestartRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+text = "Fight the Dire Wolf"
+
+[node name="VersionLabel" type="Label" parent="Margin/Root"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+text = "Emberfall Prototype -- functional layout, no art pass"

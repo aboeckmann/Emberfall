@@ -5,6 +5,7 @@ extends SceneTree
 ## Run with: godot --headless --script res://tests/run_tests.gd
 
 var failures := 0
+var _screen: Control = null
 
 func _initialize() -> void:
 	_test_attributes()
@@ -22,6 +23,27 @@ func _initialize() -> void:
 	_test_combat_encounter_defense_resolution()
 	_test_combat_encounter_reaches_a_winner()
 
+	# The combat screen needs a running tree for _ready to fire (nodes added
+	# during _initialize aren't in the tree yet -- the root itself isn't).
+	# Instance it here; the smoke test runs on the first process frame.
+	print("Combat screen (smoke test)")
+	var packed: PackedScene = load("res://scenes/combat/combat_screen.tscn")
+	_check(packed != null, "combat_screen.tscn loads")
+	if packed == null:
+		_finish()
+		return
+	_screen = packed.instantiate()
+	root.add_child(_screen)
+
+func _process(_delta: float) -> bool:
+	if _screen != null:
+		_test_combat_screen_smoke(_screen)
+		_screen.queue_free()
+		_screen = null
+		_finish()
+	return false
+
+func _finish() -> void:
 	if failures == 0:
 		print("\nALL TESTS PASSED")
 	else:
@@ -199,3 +221,18 @@ func _test_combat_encounter_reaches_a_winner() -> void:
 		rounds += 1
 	_check(encounter.is_over(), "an all-Attack player defeats or is defeated by a Wolf within 200 rounds (took %d)" % rounds)
 	_check(encounter.winner() in ["player", "enemy"], "winner() reports a definitive result (%s)" % encounter.winner())
+
+func _test_combat_screen_smoke(screen: Control) -> void:
+	_check(screen.is_node_ready(), "combat screen reached _ready in the running tree")
+	_check(screen.encounter != null, "screen auto-starts a Wolf encounter on ready")
+	if screen.encounter == null:
+		return
+	var presses := 0
+	while not screen.encounter.is_over() and presses < 300:
+		screen.get_node("%AttackButton").emit_signal("pressed")
+		presses += 1
+	_check(screen.encounter.is_over(), "pressing Attack repeatedly ends the fight (%d presses)" % presses)
+	_check(screen.get_node("%EndPanel").visible, "end panel becomes visible when the fight ends")
+	screen.get_node("%FightDireWolfButton").emit_signal("pressed")
+	_check(not screen.encounter.is_over(), "restart button begins a fresh encounter")
+	_check(screen.encounter.enemy_data.id == "dire_wolf", "restart button swaps in the chosen enemy (Dire Wolf)")

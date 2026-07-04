@@ -13,8 +13,16 @@ config_version=5
 [application]
 
 config/name="Emberfall"
-run/main_scene="res://scenes/Main.tscn"
+run/main_scene="res://scenes/combat/combat_screen.tscn"
 config/features=PackedStringArray("4.3")
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+window/handheld/orientation=1
 
 [rendering]
 

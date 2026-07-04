@@ -2,7 +2,7 @@
 
 Last Updated: 2026-07-04
 
-Status: not yet started. Categories below are placeholders.
+Status: a functional (deliberately unstyled) Combat HUD exists for the Prototype — see below. Everything else is a placeholder. No UI *design* work has happened; the existing screen is a functional scaffold awaiting Art Direction (`12_Art_Direction.md`) and a real UI/UX pass.
 
 ---
 
@@ -16,7 +16,7 @@ _Not yet defined._
 _Not yet defined._
 
 ## Combat HUD
-_Not yet defined._ Will need to surface: current position (Frontline/Balanced/Guarded/Flanking/Rear), stamina, mana, focus, Initiative, and enemy telegraphs — see `04_Combat_Design.md`.
+A functional first version exists (`scenes/combat/combat_screen.tscn` + `.gd`): portrait 720x1280, Container-based layout, default Godot theme. It surfaces enemy name/HP/telegraph, a scrolling combat log, player HP/Stamina/Initiative bars, position buttons (Frontline/Balanced/Guarded only — Flanking needs groups and Rear is encounter-specific, neither of which exists in the single-enemy Prototype), and the five action buttons (Attack/Heavy/Guard/Parry/Dodge). Mana/Focus are not shown — no caster exists in Prototype scope. This is a scaffold to playtest the combat loop, not a designed HUD; visual design is TBD pending `12_Art_Direction.md`.
 
 ## Skill Tree
 _Not yet defined._
