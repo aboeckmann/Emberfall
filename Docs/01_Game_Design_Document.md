@@ -110,8 +110,8 @@ Systems referenced in design discussion but not yet fully defined. Tracked here 
 
 | System | Lives In | Status |
 |---|---|---|
-| Skill formulas, mastery, skill caps, practice system | 05_Skills_And_Progression.md / 11_Balance_Bible.md | TBD |
-| Damage formulas, threat generation, criticals, status effects | 04_Combat_Design.md / 11_Balance_Bible.md | TBD |
+| Skill formulas, mastery, skill caps, practice system | 05_Skills_And_Progression.md / 11_Balance_Bible.md | Partial — bucket-based skill gain + Prototype curve defined; mastery/caps still TBD |
+| Damage formulas, threat generation, criticals, status effects | 04_Combat_Design.md / 11_Balance_Bible.md | Partial — Sword vs. Wolf fully defined for Prototype; status effects still TBD |
 | Enemy AI (beyond the four personality examples) | 04_Combat_Design.md | Partial |
 | Discovery, fast travel, hidden locations | 07_World_Design.md | TBD |
 | Loot generation, vendors, crafting, trading | 09_Economy_And_Crafting.md | TBD |

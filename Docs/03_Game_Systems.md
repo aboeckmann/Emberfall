@@ -37,17 +37,21 @@ Full technique list and unlock requirements: _TBD._
 
 ---
 
+## Skill Gain
+
+Every action relevant to a skill grants a small amount of XP, sized to the difficulty of the action. That XP does not apply to the skill directly — it fills a **skill-specific bucket**. The bucket has a maximum size, set by the character's Intellect (see `05_Skills_And_Progression.md` — Core Attributes). Bucket contents drain over time and convert into real skill XP; skill levels themselves require progressively more XP to reach (curve in `11_Balance_Bible.md`).
+
+Why a bucket instead of direct XP: it decouples "doing the action" from "getting stronger from it," which creates the training rhythm the game is built around — go out and fight (fill buckets), then come home and rest (drain them faster) — without hard-capping how much a player can *do* in a session. A full bucket doesn't block further actions, it just stops earning until it drains some.
+
+Bucket drain happens everywhere, slowly, at all times (see Rest below for the accelerated case). Concrete drain rates, bucket cap formula, and per-action XP values: `11_Balance_Bible.md`.
+
 ## Practice
 
-_Not yet defined._ (System referenced as a future counterpart to combat-based skill gain.)
+Practice is the non-combat counterpart to the Skill Gain loop above: training dummies, sparring partners, and drills (typically found at the Bastion or with guild trainers) that fill a skill's bucket without the risk of real combat. It is intentionally the same bucket mechanism as combat — Practice just offers a safer, slower way to fill it. Available practice activities per skill/guild: _TBD._
 
 ## Rest
 
-_Not yet defined._ (Likely ties to the Bastion — see 08_Bastion_System.md.)
-
-## Skill Gain
-
-_Not yet defined._ See `05_Skills_And_Progression.md` for the skill list itself; the gain curve/formula belongs in `11_Balance_Bible.md`.
+Resting — primarily at the Bastion (see `08_Bastion_System.md`) — accelerates bucket drain. Bucket XP converts to real skill XP everywhere, all the time, but resting at the Bastion multiplies that rate. This gives Rest a concrete mechanical payoff and reinforces the Bastion as the place players return to in order to lock in progress made out in the world. Exact drain multiplier: `11_Balance_Bible.md`.
 
 ## Persistence
 

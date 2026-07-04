@@ -19,7 +19,7 @@ Every player owns a personal Bastion. The Bastion represents the player's home a
 
 ## The Bastion Provides
 
-- Resting
+- Resting — accelerates skill-gain bucket drain (see `03_Game_Systems.md` — Rest; rates in `11_Balance_Bible.md`)
 - Skill progression
 - Crafting
 - Storage

@@ -123,7 +123,7 @@ Magic uses two resources instead of one:
 
 Big spells require both. A wizard can't endlessly cast huge spells simply because their mana pool is full — if they've been interrupted, dodging, or taking hits, their Focus drops and they have to regain composure before attempting another major spell. This creates interesting decisions without copying DragonRealms' preparation mechanics.
 
-Exact formulas for stamina/mana/focus costs and regeneration: _TBD — see 11_Balance_Bible.md._
+Stamina costs/regeneration and the Sword damage formula are defined for the Prototype (Sword vs. Wolf) in `11_Balance_Bible.md`. Mana/Focus costs remain _TBD_ — no spellcasting weapon exists in Prototype scope.
 
 ---
 
@@ -146,13 +146,13 @@ Every enemy has a personality — a wolf shouldn't fight like a knight.
 - **Duelist** — Parries often, punishes reckless attacks.
 - **Ogre** — Slow, crushing attacks, breaks guard.
 
-Players learn enemies instead of simply memorizing health bars. Additional enemy personalities and full Boss AI design: _TBD._
+Players learn enemies instead of simply memorizing health bars. The Wolf is the Prototype's enemy (see `14_Roadmap.md`) — its concrete stats and behavior thresholds are defined in `11_Balance_Bible.md`. Additional enemy personalities and full Boss AI design: _TBD_ (the Prototype's boss is also unchosen — see Balance Bible).
 
 ---
 
 ## Threat
 
-Threat generation (Presence skill) and threat reduction (Obscurity skill) exist as skill concepts — see `05_Skills_And_Progression.md`. The underlying threat/aggro formula is _TBD — see 11_Balance_Bible.md._
+Threat generation (Presence skill) and threat reduction (Obscurity skill) exist as skill concepts — see `05_Skills_And_Progression.md`. The threat and Initiative formulas are defined for the Prototype in `11_Balance_Bible.md`.
 
 ## Status Effects, Damage, Criticals, Animations
 
