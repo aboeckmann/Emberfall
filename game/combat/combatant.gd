@@ -27,12 +27,11 @@ func is_low_stamina() -> bool:
 func take_damage(amount: int) -> void:
 	current_hp = maxi(current_hp - amount, 0)
 
-## Returns false without spending anything if there isn't enough Stamina.
-func spend_stamina(amount: int) -> bool:
-	if current_stamina < amount:
-		return false
-	current_stamina -= amount
-	return true
+## Stamina never blocks an action -- running it out just floors at 0 and
+## triggers the low-Stamina penalty (StaminaRules), which is the documented
+## pacing mechanism, not a hard gate on what actions are available.
+func spend_stamina(amount: int) -> void:
+	current_stamina = maxi(current_stamina - amount, 0)
 
 func regen_stamina(was_guard_or_wait: bool) -> void:
 	current_stamina = mini(current_stamina + StaminaRules.regen_amount(was_guard_or_wait), max_stamina)

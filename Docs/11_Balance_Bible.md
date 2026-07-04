@@ -77,6 +77,13 @@ Attack Damage = (WeaponBaseDamage + floor(BladesSkill / 10)) x PositionModifier 
 ### Mana / Focus
 _TBD — out of Prototype scope (no spellcasting weapon/enemy in the Prototype)._
 
+### Defense Resolution (Prototype)
+Not previously specified anywhere — added when implementing the combat encounter loop. Deterministic first pass: no separate success-chance roll, since the enemy telegraphs one round ahead specifically so a correctly-timed defensive choice should work.
+- **Parry**: fully negates the incoming attack (0 damage) if the equipped weapon's `can_parry` is true; otherwise the attack lands in full.
+- **Dodge**: fully negates the incoming attack (0 damage).
+- **Guard**: reduces incoming damage by 50%, further reduced by the low-Stamina penalty (`x0.75`) when applicable.
+- Choosing an offensive action (Attack/Heavy Attack) instead of a defensive one while an attack is resolving takes the full hit — trading blows is a valid, deliberate choice, not a mistake the game corrects for you.
+
 ## Equipment (Prototype)
 
 Schema: `02_Technical_Design_Document.md` — Data Schemas.
@@ -94,7 +101,7 @@ Schema: `02_Technical_Design_Document.md` — Data Schemas.
 ### Wolf (Prototype enemy)
 - HP: 60
 - Bite (standard attack) damage: 8-14
-- Behavior: circles for the first 2 rounds before engaging; telegraphs "Wolf lunges!" one round before a Bite; retreats below 25% HP for several rounds, re-engages if cornered (no retreat path available).
+- Behavior: circles for the first 2 rounds before engaging; telegraphs "Wolf lunges!" one round before a Bite; retreats below 25% HP for 3 rounds (first-pass number for "several rounds"), then re-engages regardless of HP — the encounter loop doesn't model a spatial/cornering system, so "re-engages if cornered" is simplified to "retreat always expires."
 - Defense: high innate Evasion (~20% chance to avoid an incoming Attack), low Guard.
 - On landing a Bite: Wolf becomes "Emboldened" (+25% Bite damage) until the player regains Initiative (see Threat and Initiative above).
 

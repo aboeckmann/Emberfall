@@ -17,6 +17,10 @@ func _initialize() -> void:
 	_test_threat_and_initiative()
 	_test_enemy_data()
 	_test_character_sheet()
+	_test_combat_encounter_wolf_telegraph_cadence()
+	_test_combat_encounter_dire_wolf_howl()
+	_test_combat_encounter_defense_resolution()
+	_test_combat_encounter_reaches_a_winner()
 
 	if failures == 0:
 		print("\nALL TESTS PASSED")
@@ -132,3 +136,66 @@ func _test_character_sheet() -> void:
 	_check(sheet.is_guildless(), "new character starts guildless")
 	_check(sheet.renown == 0, "new character starts with 0 Renown")
 	_check(sheet.equipped_weapon == sword, "new character is equipped with the given starting weapon")
+
+func _make_encounter(enemy_path: String, seed_value: int) -> CombatEncounter:
+	var sword: WeaponData = load("res://data/weapons/sword.tres")
+	var sheet := CharacterSheet.create_new("Test Hero", sword)
+	var enemy_data: EnemyData = load(enemy_path)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	return CombatEncounter.create(sheet, enemy_data, rng)
+
+func _test_combat_encounter_wolf_telegraph_cadence() -> void:
+	print("Combat encounter (Wolf telegraph cadence)")
+	var encounter := _make_encounter("res://data/enemies/wolf.tres", 10)
+	_check(encounter.current_intent == EnemyIntent.Intent.CIRCLING, "Wolf's opening intent is CIRCLING")
+
+	encounter.resolve_round(CombatAction.Action.ATTACK)
+	_check(encounter.player.current_hp == encounter.player.max_hp, "player takes no damage during round 1 (Wolf circling)")
+	_check(encounter.current_intent == EnemyIntent.Intent.CIRCLING, "Wolf still circles for round 2 (2 circling rounds total)")
+
+	encounter.resolve_round(CombatAction.Action.ATTACK)
+	_check(encounter.player.current_hp == encounter.player.max_hp, "player takes no damage during round 2 (Wolf circling)")
+	_check(encounter.current_intent == EnemyIntent.Intent.TELEGRAPHING_BITE, "round 3 telegraphs the Bite instead of landing it")
+
+	encounter.resolve_round(CombatAction.Action.ATTACK)
+	_check(encounter.player.current_hp == encounter.player.max_hp, "player still takes no damage on the telegraph round itself")
+	_check(encounter.current_intent == EnemyIntent.Intent.BITE, "the telegraphed Bite resolves the round after it was announced")
+
+func _test_combat_encounter_dire_wolf_howl() -> void:
+	print("Combat encounter (Dire Wolf Howl)")
+	var encounter := _make_encounter("res://data/enemies/dire_wolf.tres", 11)
+	_check(encounter.current_intent == EnemyIntent.Intent.TELEGRAPHING_HOWL, "Dire Wolf telegraphs Howl at the very start of the fight")
+	_check(encounter.enemy.initiative == 0, "Initiative hasn't been seized yet, only telegraphed")
+
+	encounter.resolve_round(CombatAction.Action.ATTACK)
+	_check(encounter.current_intent == EnemyIntent.Intent.HOWL, "Howl resolves the round after being telegraphed")
+
+	encounter.resolve_round(CombatAction.Action.ATTACK)
+	_check(encounter.enemy.initiative == ThreatAndInitiative.INITIATIVE_MAX, "Howl seizes full Initiative (100) when it resolves")
+
+func _test_combat_encounter_defense_resolution() -> void:
+	print("Combat encounter (defense resolution)")
+
+	var dodging := _make_encounter("res://data/enemies/wolf.tres", 20)
+	for i in range(CombatEncounter.CIRCLING_ROUNDS + 1):  # circle out, then the telegraph round
+		dodging.resolve_round(CombatAction.Action.GUARD)
+	_check(dodging.current_intent == EnemyIntent.Intent.BITE, "test setup reached the Bite round")
+	dodging.resolve_round(CombatAction.Action.DODGE)
+	_check(dodging.player.current_hp == dodging.player.max_hp, "a correctly-timed Dodge fully negates the Bite")
+
+	var tanking := _make_encounter("res://data/enemies/wolf.tres", 20)
+	for i in range(CombatEncounter.CIRCLING_ROUNDS + 1):
+		tanking.resolve_round(CombatAction.Action.GUARD)
+	tanking.resolve_round(CombatAction.Action.ATTACK)  # offense instead of defense -- takes the full Bite
+	_check(tanking.player.current_hp < tanking.player.max_hp, "attacking instead of defending during a Bite takes full damage")
+
+func _test_combat_encounter_reaches_a_winner() -> void:
+	print("Combat encounter (runs to completion)")
+	var encounter := _make_encounter("res://data/enemies/wolf.tres", 99)
+	var rounds := 0
+	while not encounter.is_over() and rounds < 200:
+		encounter.resolve_round(CombatAction.Action.ATTACK)
+		rounds += 1
+	_check(encounter.is_over(), "an all-Attack player defeats or is defeated by a Wolf within 200 rounds (took %d)" % rounds)
+	_check(encounter.winner() in ["player", "enemy"], "winner() reports a definitive result (%s)" % encounter.winner())

@@ -148,7 +148,7 @@ Every enemy has a personality — a wolf shouldn't fight like a knight.
 - **Duelist** — Parries often, punishes reckless attacks.
 - **Ogre** — Slow, crushing attacks, breaks guard.
 
-Players learn enemies instead of simply memorizing health bars. The Wolf is the Prototype's enemy and the Dire Wolf (a boss version of the Wolf) is the Prototype's boss (see `14_Roadmap.md`) — concrete stats and behavior for both are defined in `11_Balance_Bible.md`. Additional enemy personalities and full Boss AI design beyond the Dire Wolf: _TBD_.
+Players learn enemies instead of simply memorizing health bars. The Wolf is the Prototype's enemy and the Dire Wolf (a boss version of the Wolf) is the Prototype's boss (see `14_Roadmap.md`) — concrete stats and behavior for both are defined in `11_Balance_Bible.md`, and the turn-by-turn encounter loop (`game/combat/combat_encounter.gd`) implements the telegraph-then-resolve cadence described above. That implementation is a first pass: circling/retreating are plain round counters, not a spatial/cornering system, so "re-engages if cornered" is simplified to "retreat always expires," and the Wolf's Emboldened state (bonus damage after landing a Bite, until the player regains Initiative) isn't implemented yet. Additional enemy personalities and full Boss AI design beyond the Dire Wolf: _TBD_.
 
 ---
 
