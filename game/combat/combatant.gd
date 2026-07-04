@@ -1,14 +1,14 @@
 class_name Combatant
 extends RefCounted
-## Runtime combat state shared by the player and enemies: HP, Stamina, Initiative,
-## and battlefield position. See Docs/04_Combat_Design.md.
+## Runtime combat state shared by the player and enemies: HP, Stamina, and
+## battlefield position. See Docs/04_Combat_Design.md. (Balance is not here --
+## it's a single meter shared by both sides, owned by CombatEncounter.)
 
 var display_name: String
 var max_hp: int
 var current_hp: int
 var max_stamina: int
 var current_stamina: int
-var initiative: int = 0
 var position: CombatPosition.Position = CombatPosition.Position.BALANCED
 
 func _init(p_display_name: String, p_max_hp: int, p_max_stamina: int) -> void:
@@ -35,6 +35,3 @@ func spend_stamina(amount: int) -> void:
 
 func regen_stamina(was_guard_or_wait: bool) -> void:
 	current_stamina = mini(current_stamina + StaminaRules.regen_amount(was_guard_or_wait), max_stamina)
-
-func gain_initiative(delta: int) -> void:
-	initiative = ThreatAndInitiative.apply_delta(initiative, delta)

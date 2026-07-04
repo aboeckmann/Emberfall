@@ -136,30 +136,31 @@ theme_override_font_sizes/font_size = 22
 horizontal_alignment = 2
 text = "0 / 0"
 
-[node name="InitiativeRow" type="HBoxContainer" parent="Margin/Root/PlayerPanel/PlayerBox"]
+[node name="BalanceRow" type="HBoxContainer" parent="Margin/Root/PlayerPanel/PlayerBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="InitiativeTag" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/InitiativeRow"]
+[node name="BalanceTag" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/BalanceRow"]
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "Initiative"
+text = "Balance"
 
-[node name="InitiativeBar" type="ProgressBar" parent="Margin/Root/PlayerPanel/PlayerBox/InitiativeRow"]
+[node name="BalanceBar" type="ProgressBar" parent="Margin/Root/PlayerPanel/PlayerBox/BalanceRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 size_flags_horizontal = 3
+value = 50.0
 show_percentage = false
 
-[node name="InitiativeValue" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/InitiativeRow"]
+[node name="BalanceValue" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/BalanceRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 horizontal_alignment = 2
-text = "0"
+text = "50"
 
 [node name="PositionRow" type="HBoxContainer" parent="Margin/Root"]
 layout_mode = 2

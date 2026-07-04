@@ -16,7 +16,7 @@ _Not yet defined._
 _Not yet defined._
 
 ## Combat HUD
-A functional first version exists (`scenes/combat/combat_screen.tscn` + `.gd`): portrait 720x1280, Container-based layout, default Godot theme. It surfaces enemy name/HP/telegraph, a scrolling combat log, player HP/Stamina/Initiative bars, position buttons (Frontline/Balanced/Guarded only — Flanking needs groups and Rear is encounter-specific, neither of which exists in the single-enemy Prototype), and the five action buttons (Attack/Heavy/Guard/Parry/Dodge). Mana/Focus are not shown — no caster exists in Prototype scope. This is a scaffold to playtest the combat loop, not a designed HUD; visual design is TBD pending `12_Art_Direction.md`.
+A functional first version exists (`scenes/combat/combat_screen.tscn` + `.gd`): portrait 720x1280, Container-based layout, default Godot theme. It surfaces enemy name/HP/telegraph, a scrolling combat log, player HP/Stamina bars plus the shared Balance meter (starts at 50/neutral; labeled with who holds the advantage), position buttons (Frontline/Balanced/Guarded only — Flanking needs groups and Rear is encounter-specific, neither of which exists in the single-enemy Prototype), and the five action buttons (Attack/Heavy/Guard/Parry/Dodge). Mana/Focus are not shown — no caster exists in Prototype scope. This is a scaffold to playtest the combat loop, not a designed HUD; visual design is TBD pending `12_Art_Direction.md`.
 
 ## Skill Tree
 _Not yet defined._

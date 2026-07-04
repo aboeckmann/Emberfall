@@ -15,7 +15,7 @@ func _initialize() -> void:
 	_test_equipment_data()
 	_test_damage_formula()
 	_test_crit_chance()
-	_test_threat_and_initiative()
+	_test_threat_and_balance()
 	_test_enemy_data()
 	_test_character_sheet()
 	_test_combat_encounter_wolf_telegraph_cadence()
@@ -125,14 +125,16 @@ func _test_crit_chance() -> void:
 	var precise := DamageCalculator.crit_chance(50, CombatPosition.Position.BALANCED)
 	_check(is_equal_approx(precise, 0.15), "50 Precision adds +10%% crit chance (was %f)" % precise)
 
-func _test_threat_and_initiative() -> void:
-	print("Threat and Initiative")
-	_check(is_equal_approx(ThreatAndInitiative.calculate_threat(10, 0), 10.0), "threat with 0 Presence == raw damage")
-	_check(is_equal_approx(ThreatAndInitiative.calculate_threat(10, 50), 15.0), "50 Presence adds +50%% threat")
-	_check(ThreatAndInitiative.apply_delta(95, 10) == 100, "initiative clamps at 100")
-	_check(ThreatAndInitiative.apply_delta(5, -15) == 0, "initiative clamps at 0")
-	_check(ThreatAndInitiative.has_bonus_action_available(50), "initiative 50 unlocks the bonus action")
-	_check(not ThreatAndInitiative.has_bonus_action_available(49), "initiative 49 does not")
+func _test_threat_and_balance() -> void:
+	print("Threat and Balance")
+	_check(is_equal_approx(ThreatAndBalance.calculate_threat(10, 0), 10.0), "threat with 0 Presence == raw damage")
+	_check(is_equal_approx(ThreatAndBalance.calculate_threat(10, 50), 15.0), "50 Presence adds +50%% threat")
+	_check(ThreatAndBalance.BALANCE_NEUTRAL == 50, "neutral Balance is 50")
+	_check(ThreatAndBalance.apply_delta(95, 10) == 100, "Balance clamps at 100")
+	_check(ThreatAndBalance.apply_delta(5, -15) == 0, "Balance clamps at 0")
+	_check(ThreatAndBalance.has_bonus_action_available(75), "Balance 75 unlocks the bonus action")
+	_check(not ThreatAndBalance.has_bonus_action_available(74), "Balance 74 does not")
+	_check(not ThreatAndBalance.has_bonus_action_available(ThreatAndBalance.BALANCE_NEUTRAL), "the neutral starting Balance does not unlock the bonus action")
 
 func _test_enemy_data() -> void:
 	print("Enemy data (Wolf / Dire Wolf resources)")
@@ -187,14 +189,15 @@ func _test_combat_encounter_wolf_telegraph_cadence() -> void:
 func _test_combat_encounter_dire_wolf_howl() -> void:
 	print("Combat encounter (Dire Wolf Howl)")
 	var encounter := _make_encounter("res://data/enemies/dire_wolf.tres", 11)
+	_check(encounter.balance == ThreatAndBalance.BALANCE_NEUTRAL, "the fight starts at neutral Balance (50)")
 	_check(encounter.current_intent == EnemyIntent.Intent.TELEGRAPHING_HOWL, "Dire Wolf telegraphs Howl at the very start of the fight")
-	_check(encounter.enemy.initiative == 0, "Initiative hasn't been seized yet, only telegraphed")
 
 	encounter.resolve_round(CombatAction.Action.ATTACK)
 	_check(encounter.current_intent == EnemyIntent.Intent.HOWL, "Howl resolves the round after being telegraphed")
+	_check(encounter.balance > ThreatAndBalance.BALANCE_MIN, "Balance hasn't been seized yet, only telegraphed")
 
 	encounter.resolve_round(CombatAction.Action.ATTACK)
-	_check(encounter.enemy.initiative == ThreatAndInitiative.INITIATIVE_MAX, "Howl seizes full Initiative (100) when it resolves")
+	_check(encounter.balance == ThreatAndBalance.BALANCE_MIN, "Howl slams Balance to 0 (full enemy control) when it resolves")
 
 func _test_combat_encounter_defense_resolution() -> void:
 	print("Combat encounter (defense resolution)")

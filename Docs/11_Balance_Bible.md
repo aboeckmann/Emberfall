@@ -69,10 +69,11 @@ Attack Damage = (WeaponBaseDamage + floor(BladesSkill / 10)) x PositionModifier 
 - Flanking position: +10% Crit Chance on top of the above.
 - Critical Hit: x2 damage.
 
-### Threat and Initiative
+### Threat and Balance
 - Threat generated per hit = `Damage Dealt x (1 + Presence/100)`. Enemies target whoever holds highest threat (single-target only until a second enemy/pack exists to matter).
-- Initiative: +10 on landing a hit, +15 on a successful Parry, +5 on a successful Dodge, -15 when hit by an enemy attack. Range 0-100.
-- At Initiative >= 50: player unlocks one free bonus action (a Heavy Attack with no Stamina cost and no telegraph) usable once before Initiative drops back below 50.
+- Balance (formerly "Initiative", renamed 2026-07-04): one shared meter per fight, range 0-100. 100 = player in full control, 0 = enemy in full control. **Every fight starts at 50 (neutral).**
+- Balance deltas: +10 on landing a hit, +15 on a successful Parry, +5 on a successful Dodge, -15 when hit by an enemy attack.
+- At Balance >= 75: player unlocks one free bonus action (a Heavy Attack with no Stamina cost and no telegraph) usable once before Balance drops back below 75. (Threshold raised from the old 50 when the neutral start moved to 50 — the reward should require earned advantage, not the opening bell. Not yet implemented in the encounter loop.)
 
 ### Mana / Focus
 _TBD — out of Prototype scope (no spellcasting weapon/enemy in the Prototype)._
@@ -103,7 +104,7 @@ Schema: `02_Technical_Design_Document.md` — Data Schemas.
 - Bite (standard attack) damage: 8-14
 - Behavior: circles for the first 2 rounds before engaging; telegraphs "Wolf lunges!" one round before a Bite; retreats below 25% HP for 3 rounds (first-pass number for "several rounds"), then re-engages regardless of HP — the encounter loop doesn't model a spatial/cornering system, so "re-engages if cornered" is simplified to "retreat always expires."
 - Defense: high innate Evasion (~20% chance to avoid an incoming Attack), low Guard.
-- On landing a Bite: Wolf becomes "Emboldened" (+25% Bite damage) until the player regains Initiative (see Threat and Initiative above).
+- On landing a Bite: Wolf becomes "Emboldened" (+25% Bite damage) until Balance returns to 50 (neutral) or higher (see Threat and Balance above).
 
 ### Dire Wolf (Prototype boss)
 A boss version of the Wolf — same base template, one added ability, and a personality shift that makes it feel distinctly boss-tier rather than a reskinned trash mob.
@@ -112,7 +113,7 @@ A boss version of the Wolf — same base template, one added ability, and a pers
 - Bite damage: 16-24 (vs. Wolf's 8-14)
 - Behavior: unlike the regular Wolf, does **not** circle at range or retreat at low HP — it stays aggressive at all times. Bite telegraphs the same way ("Dire Wolf lunges!").
 - Defense: same baseline as Wolf (~20% innate Evasion, low Guard) — the fight is harder because of damage/HP/Howl, not because it's evasive.
-- **Howl (new ability):** telegraphed one round ahead ("Dire Wolf throws back its head and howls!"). On resolving, Dire Wolf's Initiative is immediately set to 100, seizing full control of the fight (see Threat and Initiative above — this is the mechanical embodiment of "when enemies seize Initiative, they become more dangerous" from `04_Combat_Design.md`). Triggers once at the start of the fight and again the first time its HP drops below 50%.
+- **Howl (new ability):** telegraphed one round ahead ("Dire Wolf throws back its head and howls!"). On resolving, Balance is immediately slammed to 0 — full enemy control (see Threat and Balance above — this is the mechanical embodiment of "when enemies seize Balance, they become more dangerous" from `04_Combat_Design.md`). Triggers once at the start of the fight and again the first time its HP drops below 50%.
 - **Enrage (below 33% HP):** Bite damage +30%, permanently (no threshold to escape it by fleeing, since it never retreats).
 
 ## Economy

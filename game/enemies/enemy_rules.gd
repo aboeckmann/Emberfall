@@ -3,7 +3,7 @@ extends RefCounted
 ## Pure stat-check helpers evaluated against EnemyData. Full AI decision-making
 ## (circling, retreat timing, when to trigger Howl) is a future combat-encounter
 ## task, not implemented here. The Wolf's "Emboldened" state (bonus damage after
-## landing a Bite, until the player regains Initiative) is also not implemented
+## landing a Bite, until Balance returns to neutral or better) is also not implemented
 ## yet -- it depends on combat-loop state, not just the enemy's stat block.
 ## See Docs/11_Balance_Bible.md.
 

@@ -25,6 +25,9 @@ var rng: RandomNumberGenerator
 
 var round_number: int = 0
 var current_intent: EnemyIntent.Intent
+## Shared tug-of-war meter: 100 = player in full control, 0 = enemy in full
+## control. Starts neutral. See Docs/04_Combat_Design.md (Balance).
+var balance: int = ThreatAndBalance.BALANCE_NEUTRAL
 
 var _circling_rounds_remaining: int
 var _retreating_rounds_remaining: int = 0
@@ -110,7 +113,7 @@ func _resolve_player_attack(action: CombatAction.Action, log: Array) -> void:
 
 	enemy.take_damage(damage)
 	log.append("%s hits %s for %d damage." % [player_sheet.character_name, enemy_data.display_name, damage])
-	player.gain_initiative(ThreatAndInitiative.INITIATIVE_ON_HIT_LANDED)
+	balance = ThreatAndBalance.apply_delta(balance, ThreatAndBalance.BALANCE_ON_HIT_LANDED)
 	_grant_skill_xp(action)
 
 func _resolve_enemy_intent(player_action: CombatAction.Action, log: Array) -> void:
@@ -127,7 +130,7 @@ func _resolve_enemy_intent(player_action: CombatAction.Action, log: Array) -> vo
 			_resolve_bite(player_action, log)
 		EnemyIntent.Intent.HOWL:
 			log.append("%s howls, seizing full control of the fight!" % enemy_data.display_name)
-			enemy.initiative = ThreatAndInitiative.INITIATIVE_MAX
+			balance = ThreatAndBalance.BALANCE_MIN
 
 ## Defense Resolution (Prototype) -- see Docs/11_Balance_Bible.md.
 func _resolve_bite(player_action: CombatAction.Action, log: Array) -> void:
@@ -139,14 +142,14 @@ func _resolve_bite(player_action: CombatAction.Action, log: Array) -> void:
 			if player_sheet.equipped_weapon.can_parry:
 				final_damage = 0
 				log.append("Parried the %s's bite!" % enemy_data.display_name)
-				player.gain_initiative(ThreatAndInitiative.INITIATIVE_ON_SUCCESSFUL_PARRY)
+				balance = ThreatAndBalance.apply_delta(balance, ThreatAndBalance.BALANCE_ON_SUCCESSFUL_PARRY)
 				_grant_skill_xp(CombatAction.Action.PARRY)
 			else:
 				log.append("Can't parry with this weapon -- the bite lands!")
 		CombatAction.Action.DODGE:
 			final_damage = 0
 			log.append("Dodged the %s's bite!" % enemy_data.display_name)
-			player.gain_initiative(ThreatAndInitiative.INITIATIVE_ON_SUCCESSFUL_DODGE)
+			balance = ThreatAndBalance.apply_delta(balance, ThreatAndBalance.BALANCE_ON_SUCCESSFUL_DODGE)
 			_grant_skill_xp(CombatAction.Action.DODGE)
 		CombatAction.Action.GUARD:
 			var reduction := 0.5
@@ -160,7 +163,7 @@ func _resolve_bite(player_action: CombatAction.Action, log: Array) -> void:
 
 	if final_damage > 0:
 		player.take_damage(final_damage)
-		player.gain_initiative(ThreatAndInitiative.INITIATIVE_ON_HIT_TAKEN)
+		balance = ThreatAndBalance.apply_delta(balance, ThreatAndBalance.BALANCE_ON_HIT_TAKEN)
 
 func _grant_skill_xp(action: CombatAction.Action) -> void:
 	var gain := SkillGainTable.for_action(action, true)

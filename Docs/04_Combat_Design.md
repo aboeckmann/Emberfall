@@ -129,13 +129,15 @@ Stamina costs/regeneration and the Sword damage formula are defined for the Prot
 
 ---
 
-## Initiative
+## Balance
 
-Initiative is not "who goes first" — it's control of the fight.
+Balance is not "who goes first" — it's control of the fight, expressed as a single shared meter. 100 means the player is in full control, 0 means the enemy is, and every fight starts at 50: neutral, with neither side holding an advantage.
 
-Landing attacks, parrying successfully, exploiting openings, and using smart positioning build Initiative. As Initiative rises, the player gains access to stronger techniques and tactical options. When enemies seize Initiative, they become more dangerous, forcing the player onto the defensive until control is regained.
+Landing attacks, parrying successfully, exploiting openings, and using smart positioning push Balance toward the player. As Balance rises, the player gains access to stronger techniques and tactical options. When enemies seize Balance (pushing it down), they become more dangerous, forcing the player onto the defensive until control is regained.
 
 This creates a natural ebb and flow: early exchange → one side gains momentum → the other side recovers → battle swings back. It rewards skillful play rather than frantic tapping.
+
+(This system was originally named "Initiative"; renamed 2026-07-04 — see `CHANGELOG.md`.)
 
 ---
 
@@ -148,13 +150,13 @@ Every enemy has a personality — a wolf shouldn't fight like a knight.
 - **Duelist** — Parries often, punishes reckless attacks.
 - **Ogre** — Slow, crushing attacks, breaks guard.
 
-Players learn enemies instead of simply memorizing health bars. The Wolf is the Prototype's enemy and the Dire Wolf (a boss version of the Wolf) is the Prototype's boss (see `14_Roadmap.md`) — concrete stats and behavior for both are defined in `11_Balance_Bible.md`, and the turn-by-turn encounter loop (`game/combat/combat_encounter.gd`) implements the telegraph-then-resolve cadence described above. That implementation is a first pass: circling/retreating are plain round counters, not a spatial/cornering system, so "re-engages if cornered" is simplified to "retreat always expires," and the Wolf's Emboldened state (bonus damage after landing a Bite, until the player regains Initiative) isn't implemented yet. Additional enemy personalities and full Boss AI design beyond the Dire Wolf: _TBD_.
+Players learn enemies instead of simply memorizing health bars. The Wolf is the Prototype's enemy and the Dire Wolf (a boss version of the Wolf) is the Prototype's boss (see `14_Roadmap.md`) — concrete stats and behavior for both are defined in `11_Balance_Bible.md`, and the turn-by-turn encounter loop (`game/combat/combat_encounter.gd`) implements the telegraph-then-resolve cadence described above. That implementation is a first pass: circling/retreating are plain round counters, not a spatial/cornering system, so "re-engages if cornered" is simplified to "retreat always expires," and the Wolf's Emboldened state (bonus damage after landing a Bite, until Balance returns to neutral or better) isn't implemented yet. Additional enemy personalities and full Boss AI design beyond the Dire Wolf: _TBD_.
 
 ---
 
 ## Threat
 
-Threat generation (Presence skill) and threat reduction (Obscurity skill) exist as skill concepts — see `05_Skills_And_Progression.md`. The threat and Initiative formulas are defined for the Prototype in `11_Balance_Bible.md`.
+Threat generation (Presence skill) and threat reduction (Obscurity skill) exist as skill concepts — see `05_Skills_And_Progression.md`. The threat and Balance formulas are defined for the Prototype in `11_Balance_Bible.md`.
 
 ## Status Effects, Damage, Criticals, Animations
 

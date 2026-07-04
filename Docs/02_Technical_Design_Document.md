@@ -2,7 +2,7 @@
 
 Last Updated: 2026-07-04
 
-Status: core stack decided (2026-07-04). Backend intentionally deferred. Coding standards partially defined — the logic/presentation separation rule is set; the rest fills in as implementation starts. Prototype-scope equipment and enemy data schemas defined (2026-07-04). Project scaffolded at the repo root (2026-07-04), verified opening cleanly in Godot 4.7. First real code landed (2026-07-04): the `game/` rules layer implements the Prototype's Core Attributes, Skill Gain (bucket system), Sword damage/crit math, Threat/Initiative, Character Creation defaults, and a full turn-by-turn `CombatEncounter` loop (telegraph-then-resolve cadence, Defense Resolution) — all pure GDScript with no scene/node dependencies, per the Architecture Rule below. A first presentation-layer scene exists (2026-07-04): `scenes/combat/combat_screen.tscn` renders the encounter loop as a playable portrait combat screen (see `13_UI_UX.md` — Combat HUD); it is the project's main scene. Verified via `tests/run_tests.gd` (53 checks, run with `godot --headless --script res://tests/run_tests.gd`), which includes a smoke test that drives the combat screen's buttons through a full fight.
+Status: core stack decided (2026-07-04). Backend intentionally deferred. Coding standards partially defined — the logic/presentation separation rule is set; the rest fills in as implementation starts. Prototype-scope equipment and enemy data schemas defined (2026-07-04). Project scaffolded at the repo root (2026-07-04), verified opening cleanly in Godot 4.7. First real code landed (2026-07-04): the `game/` rules layer implements the Prototype's Core Attributes, Skill Gain (bucket system), Sword damage/crit math, Threat/Balance, Character Creation defaults, and a full turn-by-turn `CombatEncounter` loop (telegraph-then-resolve cadence, Defense Resolution) — all pure GDScript with no scene/node dependencies, per the Architecture Rule below. A first presentation-layer scene exists (2026-07-04): `scenes/combat/combat_screen.tscn` renders the encounter loop as a playable portrait combat screen (see `13_UI_UX.md` — Combat HUD); it is the project's main scene. Verified via `tests/run_tests.gd` (53 checks, run with `godot --headless --script res://tests/run_tests.gd`), which includes a smoke test that drives the combat screen's buttons through a full fight.
 
 ---
 
@@ -32,7 +32,7 @@ Decided 2026-07-04 (see `CHANGELOG.md`):
 
 ## Architecture Rule: Logic / Presentation Separation
 
-**Game rules never call engine APIs.** Combat math, skill gain, Initiative, Renown, save data structures, and all Balance Bible formulas live in plain GDScript classes with no scene, node, rendering, or input dependencies. Scenes and UI consume the rules layer; they never implement rules.
+**Game rules never call engine APIs.** Combat math, skill gain, Balance, Renown, save data structures, and all Balance Bible formulas live in plain GDScript classes with no scene, node, rendering, or input dependencies. Scenes and UI consume the rules layer; they never implement rules.
 
 This buys:
 
@@ -89,7 +89,7 @@ Concrete Prototype values (the Sword instance): `11_Balance_Bible.md`.
 Deferred — no armor exists in Prototype scope (see `14_Roadmap.md`). Fields TBD when armor is added.
 
 ### EnemyData (base resource)
-Stats only — full AI decision-making (circling, retreat timing, when to trigger Howl) is a future combat-encounter task; see `game/enemies/enemy_rules.gd` for the pure, stateless checks implemented so far (is it enraged, should it retreat, roll a bite). The Wolf's "Emboldened" state is not yet implemented, since it depends on combat-loop state (was Initiative regained since the last landed Bite?), not just the enemy's stat block.
+Stats only — full AI decision-making (circling, retreat timing, when to trigger Howl) is a future combat-encounter task; see `game/enemies/enemy_rules.gd` for the pure, stateless checks implemented so far (is it enraged, should it retreat, roll a bite). The Wolf's "Emboldened" state is not yet implemented, since it depends on combat-loop state (has Balance returned to neutral since the last landed Bite?), not just the enemy's stat block.
 
 | Field | Type | Notes |
 |---|---|---|

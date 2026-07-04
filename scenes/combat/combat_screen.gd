@@ -24,8 +24,8 @@ var encounter: CombatEncounter
 @onready var player_hp_value: Label = %PlayerHPValue
 @onready var stamina_bar: ProgressBar = %StaminaBar
 @onready var stamina_value: Label = %StaminaValue
-@onready var initiative_bar: ProgressBar = %InitiativeBar
-@onready var initiative_value: Label = %InitiativeValue
+@onready var balance_bar: ProgressBar = %BalanceBar
+@onready var balance_value: Label = %BalanceValue
 @onready var end_panel: PanelContainer = %EndPanel
 @onready var result_label: Label = %ResultLabel
 
@@ -102,14 +102,23 @@ func _update_ui() -> void:
 	stamina_bar.max_value = encounter.player.max_stamina
 	stamina_bar.value = encounter.player.current_stamina
 	stamina_value.text = "%d / %d" % [encounter.player.current_stamina, encounter.player.max_stamina]
-	initiative_bar.value = encounter.player.initiative
-	initiative_value.text = str(encounter.player.initiative)
+	balance_bar.value = encounter.balance
+	balance_value.text = _balance_text(encounter.balance)
 
 	for action in action_buttons:
 		action_buttons[action].disabled = over
 	action_buttons[CombatAction.Action.PARRY].disabled = over or not encounter.player_sheet.equipped_weapon.can_parry
 	for pos in position_buttons:
 		position_buttons[pos].disabled = over or encounter.player.position == pos
+
+## Balance is a shared meter: 100 = player in full control, 0 = enemy in full
+## control, 50 = neutral (every fight starts there).
+func _balance_text(balance: int) -> String:
+	if balance > ThreatAndBalance.BALANCE_NEUTRAL:
+		return "%d (You)" % balance
+	if balance < ThreatAndBalance.BALANCE_NEUTRAL:
+		return "%d (Enemy)" % balance
+	return "%d (Neutral)" % balance
 
 ## `encounter.current_intent` is what the enemy will do during the NEXT
 ## resolve_round call, so this label is the telegraph the player reads
