@@ -4,9 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-Emberfall is a mobile-first fantasy RPG. Design work happens in `Docs/`; the game itself is a **Godot 4.x** project scaffolded at the repo root (`project.godot`, `game/`, `scenes/`, `ui/`, `assets/`, `data/`, `tests/` — see `02_Technical_Design_Document.md` for what each folder is for). As of this scaffold there is no gameplay code yet, just the empty folder structure and a placeholder `scenes/Main.tscn`. Godot is not installed in this environment — there is no CLI build/lint/test command to run yet; opening/running the project requires the Godot 4.x editor.
+Emberfall is a mobile-first fantasy RPG. Design work happens in `Docs/`; the game itself is a **Godot 4.x** project at the repo root (`project.godot`, `game/`, `scenes/`, `ui/`, `assets/`, `data/`, `tests/` — see `02_Technical_Design_Document.md` for what each folder is for and the Data Schemas). Godot 4.7 is installed via winget (`godot` on PATH in a fresh shell). `scenes/Main.tscn` is still just a placeholder — no scenes/UI exist yet.
 
-**The load-bearing rule**: game rules (combat math, skill gain, saves — anything in `11_Balance_Bible.md`) must live in `game/` as engine-agnostic GDScript with no scene/node/rendering/input dependencies. Scenes (`scenes/`, `ui/`) consume that layer; they never implement rules. This is what keeps the Balance Bible's formulas testable headlessly and the engine swappable if Godot is ever outgrown.
+**The load-bearing rule**: game rules (combat math, skill gain, saves — anything in `11_Balance_Bible.md`) live in `game/` as engine-agnostic GDScript with no scene/node/rendering/input dependencies. Scenes (`scenes/`, `ui/`) consume that layer; they never implement rules. This is what keeps the Balance Bible's formulas testable headlessly and the engine swappable if Godot is ever outgrown. The `game/` rules layer for the Prototype (Core Attributes, Skill Gain bucket system, Sword damage/crit, Threat/Initiative, Character Creation defaults) is implemented and verified — see `tests/run_tests.gd`, a minimal ad-hoc GDScript check script (no test framework chosen yet). Run it with:
+```
+godot --headless --script res://tests/run_tests.gd
+```
+Note: a brand-new checkout needs one editor pass to build Godot's global script class-name cache before that will resolve `class_name` references — run `godot --headless --editor --quit` once first.
 
 Design documents in `Docs/` remain the source of truth for what to build — read the relevant doc(s) before implementing a system, since numbers live only in `11_Balance_Bible.md` and lore/content only in `10_Content_Bible.md` (see Document Architecture below).
 

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://game/equipment/weapon_data.gd" id="1_weapon"]
+[ext_resource type="Script" path="res://game/equipment/appearance_data.gd" id="2_appearance"]
+
+[sub_resource type="Resource" id="Resource_sword_appearance"]
+script = ExtResource("2_appearance")
+equipment_type = "Sword"
+material = ""
+color_palette = ""
+ornament_layer = ""
+
+[resource]
+script = ExtResource("1_weapon")
+id = "sword"
+display_name = "Sword"
+slots_occupied = PackedInt32Array(0)
+appearance = SubResource("Resource_sword_appearance")
+base_damage = 10
+trained_skill = "Blades"
+can_parry = true
+stamina_cost_modifier = 1.0

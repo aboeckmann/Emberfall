@@ -2,7 +2,7 @@
 
 Last Updated: 2026-07-04
 
-Status: core stack decided (2026-07-04). Backend intentionally deferred. Coding standards partially defined — the logic/presentation separation rule is set; the rest fills in as implementation starts. Prototype-scope equipment data schema defined (2026-07-04). Project scaffolded at the repo root (2026-07-04): `project.godot` + the folder structure below exist, with an empty placeholder `scenes/Main.tscn`; no gameplay code written yet. Godot was not installed in the environment that created the scaffold, so it has not been opened/verified in the editor yet — do that before building on top of it.
+Status: core stack decided (2026-07-04). Backend intentionally deferred. Coding standards partially defined — the logic/presentation separation rule is set; the rest fills in as implementation starts. Prototype-scope equipment and enemy data schemas defined (2026-07-04). Project scaffolded at the repo root (2026-07-04), verified opening cleanly in Godot 4.7. First real code landed (2026-07-04): the `game/` rules layer implements the Prototype's Core Attributes, Skill Gain (bucket system), Sword damage/crit math, Threat/Initiative, and Character Creation defaults — all pure GDScript with no scene/node dependencies, per the Architecture Rule below. Verified via `tests/run_tests.gd` (33 checks, run with `godot --headless --script res://tests/run_tests.gd`). No scenes/UI consume this layer yet.
 
 ---
 
@@ -87,6 +87,25 @@ Concrete Prototype values (the Sword instance): `11_Balance_Bible.md`.
 
 ### ArmorData (extends EquipmentData)
 Deferred — no armor exists in Prototype scope (see `14_Roadmap.md`). Fields TBD when armor is added.
+
+### EnemyData (base resource)
+Stats only — full AI decision-making (circling, retreat timing, when to trigger Howl) is a future combat-encounter task; see `game/enemies/enemy_rules.gd` for the pure, stateless checks implemented so far (is it enraged, should it retreat, roll a bite). The Wolf's "Emboldened" state is not yet implemented, since it depends on combat-loop state (was Initiative regained since the last landed Bite?), not just the enemy's stat block.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | String | unique key |
+| `display_name` | String | |
+| `max_hp` | int | |
+| `bite_damage_min` / `bite_damage_max` | int | |
+| `evasion_chance` | float | |
+| `circles_before_engaging` | bool | Wolf only |
+| `retreats_at_low_hp` | bool | Wolf only |
+| `retreat_hp_fraction` | float | HP fraction (0-1) that triggers retreat |
+| `has_howl` | bool | Dire Wolf only |
+| `enrage_hp_fraction` | float | HP fraction (0-1) that triggers Enrage; 0 = no Enrage |
+| `enrage_damage_multiplier` | float | applied to bite damage while enraged |
+
+Concrete Prototype values (Wolf, Dire Wolf): `11_Balance_Bible.md`.
 
 ### AppearanceData
 | Field | Type | Notes |

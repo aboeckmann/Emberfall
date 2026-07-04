@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/enemies/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = "wolf"
+display_name = "Wolf"
+max_hp = 60
+bite_damage_min = 8
+bite_damage_max = 14
+evasion_chance = 0.2
+circles_before_engaging = true
+retreats_at_low_hp = true
+retreat_hp_fraction = 0.25
+has_howl = false
+enrage_hp_fraction = 0.0
+enrage_damage_multiplier = 1.0
