@@ -11,6 +11,7 @@ const BALANCE_NEUTRAL := 50
 const BALANCE_ON_HIT_LANDED := 10
 const BALANCE_ON_SUCCESSFUL_PARRY := 15
 const BALANCE_ON_SUCCESSFUL_DODGE := 5
+const BALANCE_ON_SUCCESSFUL_GUARD := 3
 const BALANCE_ON_HIT_TAKEN := -15
 ## Raised from the pre-Balance value of 50: fights now START at 50 (neutral),
 ## so the free-bonus-action reward requires clear advantage, not the opening bell.

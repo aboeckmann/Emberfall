@@ -1,21 +1,24 @@
 class_name CombatEncounter
 extends RefCounted
-## Orchestrates a turn-by-turn Sword-vs-Wolf/Dire-Wolf fight, one round per
-## resolve_round() call, using the rest of the game/combat and game/skills
-## rules layer. See Docs/04_Combat_Design.md and Docs/11_Balance_Bible.md.
+## Real-time, cooldown-driven encounter. The presentation layer feeds elapsed
+## time in via advance_time(delta) and forwards player choices via try_attack()
+## / try_change_stance(); everything else -- enemy behavior, passive defense,
+## Balance, skill XP -- resolves in here. Pure GDScript, no engine dependencies.
+## See Docs/04_Combat_Design.md and Docs/11_Balance_Bible.md.
 ##
-## First-pass simplifications, clearly not full AI/positioning design:
-## - Circling and Retreating are plain round counters, not a spatial/cornering
-##   system ("re-engages if cornered" isn't modeled -- retreat just expires).
-## - Defense resolution (does Parry/Dodge/Guard actually stop the incoming
-##   Bite) wasn't specified anywhere in the Balance Bible; this implements a
-##   deterministic first pass (correct defensive choice during the attack's
-##   round succeeds outright, no separate chance roll) documented in
-##   Docs/11_Balance_Bible.md under "Defense Resolution (Prototype)".
-## - Enemy Stamina isn't modeled -- only the player has a Stamina pool.
+## Player actions share ONE cooldown gate: any action locks all actions for
+## that action's duration (CombatAction.COOLDOWN_SECONDS). The enemy runs its
+## own independent clock: circle -> telegraph -> strike -> cooldown -> repeat,
+## with retreat and Howl woven in at transition points.
+##
+## First-pass simplifications, deliberately not full AI/positioning design:
+## - Circling/retreating are timers, not a spatial system ("re-engages if
+##   cornered" is simplified to "retreat expires").
+## - Retreat/mid-fight-Howl conditions are only checked at enemy state
+##   transitions, not continuously.
+## - Enemy Stamina isn't modeled; the Wolf's Emboldened state still isn't.
 
-const CIRCLING_ROUNDS := 2       # Docs/11_Balance_Bible.md: "circles for the first 2 rounds"
-const RETREAT_DURATION_ROUNDS := 3  # first-pass number for Balance Bible's "several rounds"
+enum EnemyPhase { CIRCLING, TELEGRAPHING_ATTACK, TELEGRAPHING_HOWL, RETREATING, RECOVERING }
 
 var player: Combatant
 var player_sheet: CharacterSheet
@@ -23,14 +26,17 @@ var enemy: Combatant
 var enemy_data: EnemyData
 var rng: RandomNumberGenerator
 
-var round_number: int = 0
-var current_intent: EnemyIntent.Intent
+var elapsed_time: float = 0.0
 ## Shared tug-of-war meter: 100 = player in full control, 0 = enemy in full
 ## control. Starts neutral. See Docs/04_Combat_Design.md (Balance).
 var balance: int = ThreatAndBalance.BALANCE_NEUTRAL
 
-var _circling_rounds_remaining: int
-var _retreating_rounds_remaining: int = 0
+var player_cooldown_remaining: float = 0.0
+var player_cooldown_total: float = 0.0  # duration of the current lockout, for UI ratios
+
+var enemy_phase: EnemyPhase
+var enemy_phase_remaining: float = 0.0
+
 var _has_retreated: bool = false
 var _howl_used_start: bool = false
 var _howl_used_mid: bool = false
@@ -47,8 +53,13 @@ func _init(
 	enemy = p_enemy
 	enemy_data = p_enemy_data
 	rng = p_rng
-	_circling_rounds_remaining = CIRCLING_ROUNDS if enemy_data.circles_before_engaging else 0
-	_decide_next_intent()
+	if enemy_data.has_howl:
+		_howl_used_start = true
+		_set_enemy_phase(EnemyPhase.TELEGRAPHING_HOWL, enemy_data.howl_telegraph_seconds)
+	elif enemy_data.circling_seconds > 0.0:
+		_set_enemy_phase(EnemyPhase.CIRCLING, enemy_data.circling_seconds)
+	else:
+		_set_enemy_phase(EnemyPhase.TELEGRAPHING_ATTACK, enemy_data.telegraph_seconds)
 
 static func create(player_sheet: CharacterSheet, enemy_data: EnemyData, rng: RandomNumberGenerator) -> CombatEncounter:
 	var player_combatant := Combatant.new(
@@ -68,139 +79,168 @@ func winner() -> String:
 		return "player"
 	return ""
 
-## Resolves one full round: the player's action, then the enemy's telegraphed
-## intent, then Stamina regen and the enemy's next intent. `target_position`
-## is only used when `player_action` is REPOSITION.
-func resolve_round(player_action: CombatAction.Action, target_position = null) -> Array:
-	var log: Array = []
-	round_number += 1
+func can_act() -> bool:
+	return player_cooldown_remaining <= 0.0 and not is_over()
 
-	if player_action == CombatAction.Action.REPOSITION and target_position != null:
-		player.position = target_position
+## Advances the simulation. Returns an Array of event strings for the log.
+func advance_time(delta: float) -> Array:
+	var events: Array = []
+	if is_over() or delta <= 0.0:
+		return events
+	elapsed_time += delta
+	player_cooldown_remaining = maxf(player_cooldown_remaining - delta, 0.0)
+	player.regen_stamina(delta)
 
-	var cost := int(round(CombatAction.stamina_cost(player_action) * player_sheet.equipped_weapon.stamina_cost_modifier))
-	player.spend_stamina(cost)
+	enemy_phase_remaining -= delta
+	# A large delta can span several phases; carry leftover time into each next
+	# phase so timings stay exact regardless of step size.
+	while enemy_phase_remaining <= 0.0 and not is_over():
+		_on_enemy_phase_end(events)
+	return events
 
-	if player_action == CombatAction.Action.ATTACK or player_action == CombatAction.Action.HEAVY_ATTACK:
-		_resolve_player_attack(player_action, log)
+## Attempts an attack. No-op (empty Array) while on cooldown or after the
+## fight has ended.
+func try_attack(is_heavy: bool) -> Array:
+	var events: Array = []
+	if not can_act():
+		return events
+	var action := CombatAction.Action.HEAVY_ATTACK if is_heavy else CombatAction.Action.ATTACK
+	_start_cooldown(action)
+	player.spend_stamina(CombatAction.stamina_cost(action) * player_sheet.equipped_weapon.stamina_cost_modifier)
 
-	if enemy.is_alive():
-		_resolve_enemy_intent(player_action, log)
-
-	player.regen_stamina(player_action == CombatAction.Action.GUARD)
-
-	if not is_over():
-		_decide_next_intent()
-
-	return log
-
-func _resolve_player_attack(action: CombatAction.Action, log: Array) -> void:
 	if EnemyRules.roll_evades(enemy_data, rng):
-		log.append("%s attacks but %s evades!" % [player_sheet.character_name, enemy_data.display_name])
-		return
+		events.append("%s attacks but %s slips aside!" % [player_sheet.character_name, enemy_data.display_name])
+		return events
 
-	var is_heavy := action == CombatAction.Action.HEAVY_ATTACK
-	var blades_level: int = player_sheet.get_skill("Blades").level
+	var blades_level: int = player_sheet.get_skill(player_sheet.equipped_weapon.trained_skill).level
 	var damage := DamageCalculator.calculate_attack_damage(
 		player_sheet.equipped_weapon, blades_level, player.position, is_heavy, 0, player.is_low_stamina(), rng
 	)
-
 	var precision_level: int = player_sheet.get_skill("Precision").level
-	var chance := DamageCalculator.crit_chance(precision_level, player.position)
-	if DamageCalculator.roll_crit(chance, rng):
+	if DamageCalculator.roll_crit(DamageCalculator.crit_chance(precision_level, player.position), rng):
 		damage = DamageCalculator.apply_crit(damage)
-		log.append("Critical hit!")
+		events.append("Critical hit!")
 
 	enemy.take_damage(damage)
-	log.append("%s hits %s for %d damage." % [player_sheet.character_name, enemy_data.display_name, damage])
+	events.append("%s hits %s for %d damage." % [player_sheet.character_name, enemy_data.display_name, damage])
 	balance = ThreatAndBalance.apply_delta(balance, ThreatAndBalance.BALANCE_ON_HIT_LANDED)
-	_grant_skill_xp(action)
+	var gain := SkillGainTable.for_landed_attack(player_sheet.equipped_weapon.trained_skill, is_heavy)
+	_grant_skill_xp(gain["skill"], gain["bucket_xp"])
 
-func _resolve_enemy_intent(player_action: CombatAction.Action, log: Array) -> void:
-	match current_intent:
-		EnemyIntent.Intent.CIRCLING:
-			log.append("%s circles, watching for an opening." % enemy_data.display_name)
-		EnemyIntent.Intent.RETREATING:
-			log.append("%s backs away, wary." % enemy_data.display_name)
-		EnemyIntent.Intent.TELEGRAPHING_BITE:
-			log.append("%s lunges!" % enemy_data.display_name)
-		EnemyIntent.Intent.TELEGRAPHING_HOWL:
-			log.append("%s throws back its head, preparing to howl!" % enemy_data.display_name)
-		EnemyIntent.Intent.BITE:
-			_resolve_bite(player_action, log)
-		EnemyIntent.Intent.HOWL:
-			log.append("%s howls, seizing full control of the fight!" % enemy_data.display_name)
+	if not enemy.is_alive():
+		events.append("%s falls!" % enemy_data.display_name)
+	return events
+
+## Attempts a stance change. No-op while on cooldown, after the fight, or if
+## already in that stance.
+func try_change_stance(stance: CombatPosition.Position) -> Array:
+	var events: Array = []
+	if not can_act() or player.position == stance:
+		return events
+	_start_cooldown(CombatAction.Action.CHANGE_STANCE)
+	player.spend_stamina(CombatAction.stamina_cost(CombatAction.Action.CHANGE_STANCE))
+	player.position = stance
+	events.append("%s shifts stance." % player_sheet.character_name)
+	return events
+
+func _start_cooldown(action: CombatAction.Action) -> void:
+	player_cooldown_total = CombatAction.cooldown_seconds(action)
+	player_cooldown_remaining = player_cooldown_total
+
+func _set_enemy_phase(phase: EnemyPhase, duration: float) -> void:
+	enemy_phase = phase
+	# Carry any overshoot from the previous phase (enemy_phase_remaining is
+	# <= 0 at transition time) so long deltas don't drift the schedule.
+	enemy_phase_remaining += duration
+
+func _on_enemy_phase_end(events: Array) -> void:
+	match enemy_phase:
+		EnemyPhase.CIRCLING:
+			events.append("%s stops circling and tenses to strike..." % enemy_data.display_name)
+			_set_enemy_phase(EnemyPhase.TELEGRAPHING_ATTACK, enemy_data.telegraph_seconds)
+		EnemyPhase.TELEGRAPHING_ATTACK:
+			_resolve_enemy_attack(events)
+			_choose_post_action_phase(events)
+		EnemyPhase.TELEGRAPHING_HOWL:
+			events.append("%s howls, seizing full control of the fight!" % enemy_data.display_name)
 			balance = ThreatAndBalance.BALANCE_MIN
+			_set_enemy_phase(EnemyPhase.RECOVERING, enemy_data.attack_cooldown_seconds)
+		EnemyPhase.RETREATING:
+			events.append("%s turns and re-engages!" % enemy_data.display_name)
+			_set_enemy_phase(EnemyPhase.TELEGRAPHING_ATTACK, enemy_data.telegraph_seconds)
+		EnemyPhase.RECOVERING:
+			_choose_next_aggression(events)
 
-## Defense Resolution (Prototype) -- see Docs/11_Balance_Bible.md.
-func _resolve_bite(player_action: CombatAction.Action, log: Array) -> void:
-	var raw_bite := EnemyRules.roll_bite_damage(enemy_data, enemy.current_hp, rng)
-	var final_damage := raw_bite
+func _choose_post_action_phase(events: Array) -> void:
+	if is_over():
+		return
+	if _should_howl_mid():
+		_howl_used_mid = true
+		events.append("%s throws back its head..." % enemy_data.display_name)
+		_set_enemy_phase(EnemyPhase.TELEGRAPHING_HOWL, enemy_data.howl_telegraph_seconds)
+		return
+	if not _has_retreated and EnemyRules.should_retreat(enemy_data, enemy.current_hp):
+		_has_retreated = true
+		events.append("%s backs away, wary." % enemy_data.display_name)
+		_set_enemy_phase(EnemyPhase.RETREATING, enemy_data.retreat_seconds)
+		return
+	_set_enemy_phase(EnemyPhase.RECOVERING, enemy_data.attack_cooldown_seconds)
 
-	match player_action:
-		CombatAction.Action.PARRY:
-			if player_sheet.equipped_weapon.can_parry:
-				final_damage = 0
-				log.append("Parried the %s's bite!" % enemy_data.display_name)
-				balance = ThreatAndBalance.apply_delta(balance, ThreatAndBalance.BALANCE_ON_SUCCESSFUL_PARRY)
-				_grant_skill_xp(CombatAction.Action.PARRY)
-			else:
-				log.append("Can't parry with this weapon -- the bite lands!")
-		CombatAction.Action.DODGE:
-			final_damage = 0
-			log.append("Dodged the %s's bite!" % enemy_data.display_name)
-			balance = ThreatAndBalance.apply_delta(balance, ThreatAndBalance.BALANCE_ON_SUCCESSFUL_DODGE)
-			_grant_skill_xp(CombatAction.Action.DODGE)
-		CombatAction.Action.GUARD:
-			var reduction := 0.5
-			if player.is_low_stamina():
-				reduction *= StaminaRules.LOW_STAMINA_MULTIPLIER
-			final_damage = int(round(raw_bite * (1.0 - reduction)))
-			log.append("Guarded -- the bite lands for a reduced %d damage." % final_damage)
-			_grant_skill_xp(CombatAction.Action.GUARD)
-		_:
-			log.append("%s bites %s for %d damage!" % [enemy_data.display_name, player_sheet.character_name, final_damage])
+func _choose_next_aggression(events: Array) -> void:
+	if _should_howl_mid():
+		_howl_used_mid = true
+		events.append("%s throws back its head..." % enemy_data.display_name)
+		_set_enemy_phase(EnemyPhase.TELEGRAPHING_HOWL, enemy_data.howl_telegraph_seconds)
+		return
+	if not _has_retreated and EnemyRules.should_retreat(enemy_data, enemy.current_hp):
+		_has_retreated = true
+		events.append("%s backs away, wary." % enemy_data.display_name)
+		_set_enemy_phase(EnemyPhase.RETREATING, enemy_data.retreat_seconds)
+		return
+	events.append("%s tenses to strike..." % enemy_data.display_name)
+	_set_enemy_phase(EnemyPhase.TELEGRAPHING_ATTACK, enemy_data.telegraph_seconds)
 
+func _should_howl_mid() -> bool:
+	return enemy_data.has_howl and not _howl_used_mid \
+		and enemy.current_hp <= int(enemy_data.max_hp / 2.0)
+
+## The telegraphed attack lands: run the passive Parry -> Dodge -> Block checks
+## (DefenseRules) -- no player input involved.
+func _resolve_enemy_attack(events: Array) -> void:
+	var outcome := DefenseRules.resolve(
+		player_sheet.get_skill("Parry").level,
+		player_sheet.get_skill("Evasion").level,
+		player_sheet.get_skill("Guard").level,
+		enemy_data.attack_skill,
+		player.position,
+		balance,
+		player.is_low_stamina(),
+		player_sheet.equipped_weapon.can_parry,
+		rng
+	)
+	var raw_damage := EnemyRules.roll_bite_damage(enemy_data, enemy.current_hp, rng)
+	var final_damage := int(round(raw_damage * outcome["damage_multiplier"]))
+
+	match outcome["result"]:
+		"parry":
+			events.append("You parry the %s's bite!" % enemy_data.display_name)
+		"dodge":
+			events.append("You twist away from the %s's bite!" % enemy_data.display_name)
+		"guard":
+			events.append("You block -- the bite lands for a reduced %d damage." % final_damage)
+		"hit":
+			events.append("%s bites %s for %d damage!" % [enemy_data.display_name, player_sheet.character_name, final_damage])
+
+	player.spend_stamina(outcome["stamina_cost"])
 	if final_damage > 0:
 		player.take_damage(final_damage)
-		balance = ThreatAndBalance.apply_delta(balance, ThreatAndBalance.BALANCE_ON_HIT_TAKEN)
+	balance = ThreatAndBalance.apply_delta(balance, outcome["balance_delta"])
+	if outcome["trained_skill"] != "":
+		_grant_skill_xp(outcome["trained_skill"], outcome["bucket_xp"])
 
-func _grant_skill_xp(action: CombatAction.Action) -> void:
-	var gain := SkillGainTable.for_action(action, true)
-	if gain.is_empty():
-		return
-	var skill := player_sheet.get_skill(gain["skill"])
-	skill.add_bucket_xp(gain["bucket_xp"], player_sheet.attributes.skill_bucket_cap())
+	if not player.is_alive():
+		events.append("%s falls..." % player_sheet.character_name)
 
-## A TELEGRAPHING_* intent always resolves into its real counterpart the very
-## next round; otherwise, priority is Retreating > Circling > Howl > Bite.
-func _decide_next_intent() -> void:
-	if current_intent == EnemyIntent.Intent.TELEGRAPHING_BITE:
-		current_intent = EnemyIntent.Intent.BITE
-		return
-	if current_intent == EnemyIntent.Intent.TELEGRAPHING_HOWL:
-		current_intent = EnemyIntent.Intent.HOWL
-		return
-
-	if _retreating_rounds_remaining > 0:
-		_retreating_rounds_remaining -= 1
-		current_intent = EnemyIntent.Intent.RETREATING
-		return
-	if _circling_rounds_remaining > 0:
-		_circling_rounds_remaining -= 1
-		current_intent = EnemyIntent.Intent.CIRCLING
-		return
-	if enemy_data.has_howl and not _howl_used_start:
-		_howl_used_start = true
-		current_intent = EnemyIntent.Intent.TELEGRAPHING_HOWL
-		return
-	if enemy_data.has_howl and not _howl_used_mid and enemy.current_hp <= int(enemy_data.max_hp / 2.0):
-		_howl_used_mid = true
-		current_intent = EnemyIntent.Intent.TELEGRAPHING_HOWL
-		return
-	if enemy_data.retreats_at_low_hp and not _has_retreated and EnemyRules.should_retreat(enemy_data, enemy.current_hp):
-		_has_retreated = true
-		_retreating_rounds_remaining = RETREAT_DURATION_ROUNDS - 1
-		current_intent = EnemyIntent.Intent.RETREATING
-		return
-	current_intent = EnemyIntent.Intent.TELEGRAPHING_BITE
+func _grant_skill_xp(skill_name: String, bucket_xp: float) -> void:
+	var skill := player_sheet.get_skill(skill_name)
+	skill.add_bucket_xp(bucket_xp, player_sheet.attributes.skill_bucket_cap())

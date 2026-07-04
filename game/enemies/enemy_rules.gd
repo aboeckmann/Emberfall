@@ -19,7 +19,7 @@ static func roll_bite_damage(enemy: EnemyData, current_hp: int, rng: RandomNumbe
 	return damage
 
 static func should_retreat(enemy: EnemyData, current_hp: int) -> bool:
-	if not enemy.retreats_at_low_hp:
+	if enemy.retreat_hp_fraction <= 0.0:
 		return false
 	return float(current_hp) / float(enemy.max_hp) <= enemy.retreat_hp_fraction
 

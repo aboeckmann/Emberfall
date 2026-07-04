@@ -12,15 +12,16 @@ func _initialize() -> void:
 	_test_skill_xp_curve()
 	_test_skill_bucket()
 	_test_stamina_rules()
+	_test_defense_rules()
 	_test_equipment_data()
 	_test_damage_formula()
 	_test_crit_chance()
 	_test_threat_and_balance()
 	_test_enemy_data()
 	_test_character_sheet()
-	_test_combat_encounter_wolf_telegraph_cadence()
+	_test_combat_encounter_wolf_timeline()
+	_test_combat_encounter_player_cooldowns()
 	_test_combat_encounter_dire_wolf_howl()
-	_test_combat_encounter_defense_resolution()
 	_test_combat_encounter_reaches_a_winner()
 
 	# The combat screen needs a running tree for _ready to fire (nodes added
@@ -87,11 +88,29 @@ func _test_skill_bucket() -> void:
 
 func _test_stamina_rules() -> void:
 	print("Stamina rules")
-	_check(StaminaRules.regen_amount(false) == 5, "default regen is 5")
-	_check(StaminaRules.regen_amount(true) == 10, "guard/wait regen is 10")
+	_check(StaminaRules.regen_per_second(CombatPosition.Position.BALANCED) == 4.0, "default regen is 4/s")
+	_check(StaminaRules.regen_per_second(CombatPosition.Position.GUARDED) == 6.0, "Guarded stance regen is 6/s")
 	_check(StaminaRules.is_low(19), "19 stamina counts as low")
 	_check(not StaminaRules.is_low(20), "20 stamina does not count as low")
-	_check(CombatAction.stamina_cost(CombatAction.Action.HEAVY_ATTACK) == 20, "heavy attack costs 20 stamina")
+	_check(CombatAction.stamina_cost(CombatAction.Action.HEAVY_ATTACK) == 20.0, "heavy attack costs 20 stamina")
+	_check(CombatAction.cooldown_seconds(CombatAction.Action.ATTACK) == 2.0, "attack triggers a 2s cooldown")
+	_check(CombatAction.cooldown_seconds(CombatAction.Action.HEAVY_ATTACK) == 4.0, "heavy attack triggers a 4s cooldown")
+	_check(CombatAction.cooldown_seconds(CombatAction.Action.CHANGE_STANCE) == 3.0, "stance change triggers a 3s cooldown")
+
+func _test_defense_rules() -> void:
+	print("Defense rules (passive checks)")
+	var base := DefenseRules.check_chance(DefenseRules.PARRY_BASE_CHANCE, 0, 10, CombatPosition.Position.BALANCED, 50, false)
+	_check(is_equal_approx(base, 0.15), "skill 0 vs attack skill 10, Balanced, neutral Balance: parry chance 15%% (was %f)" % base)
+	var guarded := DefenseRules.check_chance(DefenseRules.GUARD_BASE_CHANCE, 0, 10, CombatPosition.Position.GUARDED, 50, false)
+	_check(is_equal_approx(guarded, 0.35), "Guarded stance adds +15%% (block chance 35%%, was %f)" % guarded)
+	var frontline := DefenseRules.check_chance(DefenseRules.DODGE_BASE_CHANCE, 0, 10, CombatPosition.Position.FRONTLINE, 50, false)
+	_check(is_equal_approx(frontline, 0.0), "Frontline's -10%% floors the weakest check at 0 (was %f)" % frontline)
+	var high_balance := DefenseRules.check_chance(DefenseRules.PARRY_BASE_CHANCE, 0, 10, CombatPosition.Position.BALANCED, 100, false)
+	_check(is_equal_approx(high_balance, 0.25), "Balance 100 adds +10%% (was %f)" % high_balance)
+	var capped := DefenseRules.check_chance(DefenseRules.PARRY_BASE_CHANCE, 100, 0, CombatPosition.Position.GUARDED, 100, false)
+	_check(is_equal_approx(capped, DefenseRules.MAX_CHANCE_PER_CHECK), "chances cap at 60%% (was %f)" % capped)
+	var tired := DefenseRules.check_chance(DefenseRules.PARRY_BASE_CHANCE, 0, 10, CombatPosition.Position.BALANCED, 50, true)
+	_check(is_equal_approx(tired, 0.15 * 0.75), "low Stamina multiplies the chance by 0.75 (was %f)" % tired)
 
 func _test_equipment_data() -> void:
 	print("Equipment data (Sword resource)")
@@ -169,60 +188,69 @@ func _make_encounter(enemy_path: String, seed_value: int) -> CombatEncounter:
 	rng.seed = seed_value
 	return CombatEncounter.create(sheet, enemy_data, rng)
 
-func _test_combat_encounter_wolf_telegraph_cadence() -> void:
-	print("Combat encounter (Wolf telegraph cadence)")
+func _test_combat_encounter_wolf_timeline() -> void:
+	print("Combat encounter (Wolf real-time timeline)")
 	var encounter := _make_encounter("res://data/enemies/wolf.tres", 10)
-	_check(encounter.current_intent == EnemyIntent.Intent.CIRCLING, "Wolf's opening intent is CIRCLING")
+	_check(encounter.enemy_phase == CombatEncounter.EnemyPhase.CIRCLING, "Wolf opens by circling")
 
-	encounter.resolve_round(CombatAction.Action.ATTACK)
-	_check(encounter.player.current_hp == encounter.player.max_hp, "player takes no damage during round 1 (Wolf circling)")
-	_check(encounter.current_intent == EnemyIntent.Intent.CIRCLING, "Wolf still circles for round 2 (2 circling rounds total)")
+	encounter.advance_time(3.9)  # circling lasts 4.0s
+	_check(encounter.enemy_phase == CombatEncounter.EnemyPhase.CIRCLING, "still circling at 3.9s")
+	_check(encounter.player.current_hp == encounter.player.max_hp, "no damage while circling")
 
-	encounter.resolve_round(CombatAction.Action.ATTACK)
-	_check(encounter.player.current_hp == encounter.player.max_hp, "player takes no damage during round 2 (Wolf circling)")
-	_check(encounter.current_intent == EnemyIntent.Intent.TELEGRAPHING_BITE, "round 3 telegraphs the Bite instead of landing it")
+	encounter.advance_time(0.2)  # crosses 4.0s
+	_check(encounter.enemy_phase == CombatEncounter.EnemyPhase.TELEGRAPHING_ATTACK, "circling ends into an attack telegraph")
+	_check(encounter.player.current_hp == encounter.player.max_hp, "telegraph itself deals no damage")
 
-	encounter.resolve_round(CombatAction.Action.ATTACK)
-	_check(encounter.player.current_hp == encounter.player.max_hp, "player still takes no damage on the telegraph round itself")
-	_check(encounter.current_intent == EnemyIntent.Intent.BITE, "the telegraphed Bite resolves the round after it was announced")
+	var events := encounter.advance_time(1.5)  # telegraph is 1.5s; attack resolves
+	var attack_resolved := false
+	for e in events:
+		if "bite" in str(e).to_lower() or "parry" in str(e).to_lower() or "twist" in str(e).to_lower() or "block" in str(e).to_lower():
+			attack_resolved = true
+	_check(attack_resolved, "the telegraphed attack resolves after the telegraph elapses (events: %s)" % str(events))
+	_check(encounter.enemy_phase != CombatEncounter.EnemyPhase.TELEGRAPHING_ATTACK, "the enemy moves on after striking")
+
+func _test_combat_encounter_player_cooldowns() -> void:
+	print("Combat encounter (player cooldowns)")
+	var encounter := _make_encounter("res://data/enemies/wolf.tres", 30)
+	_check(encounter.can_act(), "player can act at fight start")
+	var events := encounter.try_attack(false)
+	_check(not events.is_empty(), "the first attack resolves")
+	_check(not encounter.can_act(), "attacking locks the player out (shared cooldown)")
+	_check(encounter.try_attack(false).is_empty(), "a second attack during cooldown is a no-op")
+	_check(encounter.try_change_stance(CombatPosition.Position.GUARDED).is_empty(), "a stance change during cooldown is a no-op too")
+	encounter.advance_time(2.0)  # attack cooldown is 2.0s
+	_check(encounter.can_act(), "the attack cooldown expires after 2s")
+
+	events = encounter.try_change_stance(CombatPosition.Position.GUARDED)
+	_check(not events.is_empty(), "stance change resolves when ready")
+	_check(encounter.player.position == CombatPosition.Position.GUARDED, "stance actually changed")
+	_check(not encounter.can_act(), "stance changes trigger their own cooldown")
+	encounter.advance_time(2.9)
+	_check(not encounter.can_act(), "stance cooldown (3s) still running at 2.9s")
+	encounter.advance_time(0.2)
+	_check(encounter.can_act(), "stance cooldown expires after 3s")
 
 func _test_combat_encounter_dire_wolf_howl() -> void:
 	print("Combat encounter (Dire Wolf Howl)")
 	var encounter := _make_encounter("res://data/enemies/dire_wolf.tres", 11)
 	_check(encounter.balance == ThreatAndBalance.BALANCE_NEUTRAL, "the fight starts at neutral Balance (50)")
-	_check(encounter.current_intent == EnemyIntent.Intent.TELEGRAPHING_HOWL, "Dire Wolf telegraphs Howl at the very start of the fight")
+	_check(encounter.enemy_phase == CombatEncounter.EnemyPhase.TELEGRAPHING_HOWL, "Dire Wolf telegraphs Howl at the very start")
 
-	encounter.resolve_round(CombatAction.Action.ATTACK)
-	_check(encounter.current_intent == EnemyIntent.Intent.HOWL, "Howl resolves the round after being telegraphed")
-	_check(encounter.balance > ThreatAndBalance.BALANCE_MIN, "Balance hasn't been seized yet, only telegraphed")
-
-	encounter.resolve_round(CombatAction.Action.ATTACK)
+	encounter.advance_time(1.9)  # howl telegraph is 2.0s
+	_check(encounter.balance == ThreatAndBalance.BALANCE_NEUTRAL, "Balance hasn't been seized during the telegraph")
+	encounter.advance_time(0.2)
 	_check(encounter.balance == ThreatAndBalance.BALANCE_MIN, "Howl slams Balance to 0 (full enemy control) when it resolves")
-
-func _test_combat_encounter_defense_resolution() -> void:
-	print("Combat encounter (defense resolution)")
-
-	var dodging := _make_encounter("res://data/enemies/wolf.tres", 20)
-	for i in range(CombatEncounter.CIRCLING_ROUNDS + 1):  # circle out, then the telegraph round
-		dodging.resolve_round(CombatAction.Action.GUARD)
-	_check(dodging.current_intent == EnemyIntent.Intent.BITE, "test setup reached the Bite round")
-	dodging.resolve_round(CombatAction.Action.DODGE)
-	_check(dodging.player.current_hp == dodging.player.max_hp, "a correctly-timed Dodge fully negates the Bite")
-
-	var tanking := _make_encounter("res://data/enemies/wolf.tres", 20)
-	for i in range(CombatEncounter.CIRCLING_ROUNDS + 1):
-		tanking.resolve_round(CombatAction.Action.GUARD)
-	tanking.resolve_round(CombatAction.Action.ATTACK)  # offense instead of defense -- takes the full Bite
-	_check(tanking.player.current_hp < tanking.player.max_hp, "attacking instead of defending during a Bite takes full damage")
 
 func _test_combat_encounter_reaches_a_winner() -> void:
 	print("Combat encounter (runs to completion)")
 	var encounter := _make_encounter("res://data/enemies/wolf.tres", 99)
-	var rounds := 0
-	while not encounter.is_over() and rounds < 200:
-		encounter.resolve_round(CombatAction.Action.ATTACK)
-		rounds += 1
-	_check(encounter.is_over(), "an all-Attack player defeats or is defeated by a Wolf within 200 rounds (took %d)" % rounds)
+	var simulated := 0.0
+	while not encounter.is_over() and simulated < 600.0:
+		encounter.advance_time(0.1)
+		simulated += 0.1
+		if encounter.can_act():
+			encounter.try_attack(false)
+	_check(encounter.is_over(), "an attack-when-ready player finishes a Wolf fight within 600 simulated seconds (took %.1fs)" % simulated)
 	_check(encounter.winner() in ["player", "enemy"], "winner() reports a definitive result (%s)" % encounter.winner())
 
 func _test_combat_screen_smoke(screen: Control) -> void:
@@ -230,11 +258,15 @@ func _test_combat_screen_smoke(screen: Control) -> void:
 	_check(screen.encounter != null, "screen auto-starts a Wolf encounter on ready")
 	if screen.encounter == null:
 		return
-	var presses := 0
-	while not screen.encounter.is_over() and presses < 300:
-		screen.get_node("%AttackButton").emit_signal("pressed")
-		presses += 1
-	_check(screen.encounter.is_over(), "pressing Attack repeatedly ends the fight (%d presses)" % presses)
+	# Fast-forward by calling _process directly with large deltas (the engine
+	# also calls it per frame with tiny real deltas; those are harmless).
+	var simulated := 0.0
+	while not screen.encounter.is_over() and simulated < 600.0:
+		screen._process(0.25)
+		simulated += 0.25
+		if screen.encounter.can_act():
+			screen.get_node("%AttackButton").emit_signal("pressed")
+	_check(screen.encounter.is_over(), "attacking whenever ready ends the fight (%.0fs simulated)" % simulated)
 	_check(screen.get_node("%EndPanel").visible, "end panel becomes visible when the fight ends")
 	screen.get_node("%FightDireWolfButton").emit_signal("pressed")
 	_check(not screen.encounter.is_over(), "restart button begins a fresh encounter")

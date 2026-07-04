@@ -190,9 +190,35 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
 text = "Guarded"
 
+[node name="CooldownRow" type="HBoxContainer" parent="Margin/Root"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CooldownTag" type="Label" parent="Margin/Root/CooldownRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Cooldown"
+
+[node name="CooldownBar" type="ProgressBar" parent="Margin/Root/CooldownRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+value = 100.0
+show_percentage = false
+
+[node name="CooldownValue" type="Label" parent="Margin/Root/CooldownRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 2
+text = "Ready"
+
 [node name="ActionsGrid" type="GridContainer" parent="Margin/Root"]
 layout_mode = 2
-columns = 3
+columns = 2
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 
@@ -202,7 +228,7 @@ custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 26
-text = "Attack"
+text = "Attack (2s)"
 
 [node name="HeavyAttackButton" type="Button" parent="Margin/Root/ActionsGrid"]
 unique_name_in_owner = true
@@ -210,31 +236,7 @@ custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 26
-text = "Heavy"
-
-[node name="GuardButton" type="Button" parent="Margin/Root/ActionsGrid"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 26
-text = "Guard"
-
-[node name="ParryButton" type="Button" parent="Margin/Root/ActionsGrid"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 26
-text = "Parry"
-
-[node name="DodgeButton" type="Button" parent="Margin/Root/ActionsGrid"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 26
-text = "Dodge"
+text = "Heavy (4s)"
 
 [node name="EndPanel" type="PanelContainer" parent="Margin/Root"]
 unique_name_in_owner = true

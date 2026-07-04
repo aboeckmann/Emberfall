@@ -51,23 +51,21 @@ Only available in some encounters. Ideal for archers and casters.
 
 ---
 
-## Combat Decisions
+## Combat Decisions (Real-Time Cooldowns)
 
-Every combat turn, the player makes a meaningful choice. Example prompt:
+Combat runs in real time, paced by cooldowns rather than discrete turns (changed 2026-07-04 — see `CHANGELOG.md`; the earlier turn-based model felt forced and mechanical). Using any ability triggers a shared cooldown before another can be used, and different actions carry different cooldown lengths — a Heavy Attack locks you out longer than a quick strike. Stance changes trigger cooldowns too. The decision space is *when* to spend your next action and on what, while reading the enemy's telegraphs.
 
-> Enemy preparing Heavy Swing...
-> Options: Guard / Sidestep / Parry / Attack / Ability
-
-Decision options include:
+Player-selectable actions:
 
 - Attack
 - Heavy Attack
-- Guard
-- Parry
-- Dodge
-- Change Stance
-- Technique
-- Cast Spell
+- Change Stance (Frontline / Balanced / Guarded)
+- Technique — future
+- Cast Spell — future
+
+Parry/Dodge/Block are deliberately NOT selectable — see Defense below.
+
+Cooldown durations: `11_Balance_Bible.md`.
 
 ---
 
@@ -94,9 +92,13 @@ Different weapons change how combat feels, not just the numbers.
 
 ---
 
-## Defense
+## Defense (Passive)
 
-Defense is a set of active choices, not a static stat. When an enemy attacks, the player chooses: Block, Parry, Dodge, or Brace. Each interacts differently with the incoming attack.
+Defense is not a player selection (changed 2026-07-04 — see `CHANGELOG.md`). When an enemy attack lands, the defender automatically attempts Parry, then Dodge, then Block — each a skill-vs-skill check (the defender's Parry/Evasion/Guard skill against the attacker's attack skill), influenced by stance and Balance and penalized at low Stamina. Parry requires a weapon that can parry.
+
+The player's defensive agency lives in the *setup*, not the moment: train the right skills, hold the right stance for the situation, keep Stamina up, and keep Balance in your favor. A successful Parry or Dodge negates the attack; a Block halves it; all three still shift Balance toward you and train their skill.
+
+Formula and outcomes: `11_Balance_Bible.md` (Defense Resolution).
 
 ---
 
@@ -150,7 +152,9 @@ Every enemy has a personality — a wolf shouldn't fight like a knight.
 - **Duelist** — Parries often, punishes reckless attacks.
 - **Ogre** — Slow, crushing attacks, breaks guard.
 
-Players learn enemies instead of simply memorizing health bars. The Wolf is the Prototype's enemy and the Dire Wolf (a boss version of the Wolf) is the Prototype's boss (see `14_Roadmap.md`) — concrete stats and behavior for both are defined in `11_Balance_Bible.md`, and the turn-by-turn encounter loop (`game/combat/combat_encounter.gd`) implements the telegraph-then-resolve cadence described above. That implementation is a first pass: circling/retreating are plain round counters, not a spatial/cornering system, so "re-engages if cornered" is simplified to "retreat always expires," and the Wolf's Emboldened state (bonus damage after landing a Bite, until Balance returns to neutral or better) isn't implemented yet. Additional enemy personalities and full Boss AI design beyond the Dire Wolf: _TBD_.
+Enemies act on their own real-time clock, fully independent of the player's cooldowns: circle → telegraph → strike → recover → repeat, with retreat and special abilities (Howl) woven in. The player can't stall an enemy by waiting, and the enemy doesn't wait its turn.
+
+Players learn enemies instead of simply memorizing health bars. The Wolf is the Prototype's enemy and the Dire Wolf (a boss version of the Wolf) is the Prototype's boss (see `14_Roadmap.md`) — concrete stats and timings for both are defined in `11_Balance_Bible.md`, and the real-time encounter loop (`game/combat/combat_encounter.gd`) implements the telegraph-then-resolve cadence described above. That implementation is a first pass: circling/retreating are timers, not a spatial/cornering system, so "re-engages if cornered" is simplified to "retreat expires"; retreat/Howl conditions are only checked when the enemy finishes an action; and the Wolf's Emboldened state (bonus damage after landing a Bite, until Balance returns to neutral or better) isn't implemented yet. Additional enemy personalities and full Boss AI design beyond the Dire Wolf: _TBD_.
 
 ---
 

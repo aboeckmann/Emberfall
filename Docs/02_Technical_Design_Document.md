@@ -2,7 +2,7 @@
 
 Last Updated: 2026-07-04
 
-Status: core stack decided (2026-07-04). Backend intentionally deferred. Coding standards partially defined — the logic/presentation separation rule is set; the rest fills in as implementation starts. Prototype-scope equipment and enemy data schemas defined (2026-07-04). Project scaffolded at the repo root (2026-07-04), verified opening cleanly in Godot 4.7. First real code landed (2026-07-04): the `game/` rules layer implements the Prototype's Core Attributes, Skill Gain (bucket system), Sword damage/crit math, Threat/Balance, Character Creation defaults, and a full turn-by-turn `CombatEncounter` loop (telegraph-then-resolve cadence, Defense Resolution) — all pure GDScript with no scene/node dependencies, per the Architecture Rule below. A first presentation-layer scene exists (2026-07-04): `scenes/combat/combat_screen.tscn` renders the encounter loop as a playable portrait combat screen (see `13_UI_UX.md` — Combat HUD); it is the project's main scene. Verified via `tests/run_tests.gd` (53 checks, run with `godot --headless --script res://tests/run_tests.gd`), which includes a smoke test that drives the combat screen's buttons through a full fight.
+Status: core stack decided (2026-07-04). Backend intentionally deferred. Coding standards partially defined — the logic/presentation separation rule is set; the rest fills in as implementation starts. Prototype-scope equipment and enemy data schemas defined (2026-07-04). Project scaffolded at the repo root (2026-07-04), verified opening cleanly in Godot 4.7. First real code landed (2026-07-04): the `game/` rules layer implements the Prototype's Core Attributes, Skill Gain (bucket system), Sword damage/crit math, Threat/Balance, Character Creation defaults, and a full real-time `CombatEncounter` loop (cooldown-gated player actions, passive skill-vs-skill defense via `DefenseRules`, independent enemy clock) — all pure GDScript with no scene/node dependencies, per the Architecture Rule below; the encounter exposes `advance_time(delta)` and the scene feeds it frame deltas. A presentation-layer scene exists: `scenes/combat/combat_screen.tscn` renders the encounter as a playable portrait combat screen (see `13_UI_UX.md` — Combat HUD); it is the project's main scene. Verified via `tests/run_tests.gd` (76 checks, run with `godot --headless --script res://tests/run_tests.gd`), which includes a smoke test that drives the combat screen's buttons through a full fight.
 
 ---
 
@@ -89,7 +89,7 @@ Concrete Prototype values (the Sword instance): `11_Balance_Bible.md`.
 Deferred — no armor exists in Prototype scope (see `14_Roadmap.md`). Fields TBD when armor is added.
 
 ### EnemyData (base resource)
-Stats only — full AI decision-making (circling, retreat timing, when to trigger Howl) is a future combat-encounter task; see `game/enemies/enemy_rules.gd` for the pure, stateless checks implemented so far (is it enraged, should it retreat, roll a bite). The Wolf's "Emboldened" state is not yet implemented, since it depends on combat-loop state (has Balance returned to neutral since the last landed Bite?), not just the enemy's stat block.
+Stats and timings only — the enemy's real-time state machine (circle → telegraph → strike → recover, with retreat/Howl at transitions) lives in `game/combat/combat_encounter.gd`; the pure, stateless checks live in `game/enemies/enemy_rules.gd`. The Wolf's "Emboldened" state is not yet implemented, since it depends on combat-loop state (has Balance returned to neutral since the last landed Bite?), not just the enemy's stat block.
 
 | Field | Type | Notes |
 |---|---|---|
@@ -97,11 +97,15 @@ Stats only — full AI decision-making (circling, retreat timing, when to trigge
 | `display_name` | String | |
 | `max_hp` | int | |
 | `bite_damage_min` / `bite_damage_max` | int | |
-| `evasion_chance` | float | |
-| `circles_before_engaging` | bool | Wolf only |
-| `retreats_at_low_hp` | bool | Wolf only |
-| `retreat_hp_fraction` | float | HP fraction (0-1) that triggers retreat |
+| `evasion_chance` | float | chance to avoid an incoming player attack |
+| `attack_skill` | int | checked against the defender's passive defense skills (DefenseRules) |
+| `telegraph_seconds` | float | warning time before an attack lands |
+| `attack_cooldown_seconds` | float | recovery after an attack resolves |
+| `circling_seconds` | float | opening delay before the first attack; 0 = engages immediately |
+| `retreat_hp_fraction` | float | HP fraction (0-1) that triggers retreat; 0 = never retreats |
+| `retreat_seconds` | float | duration of the (single) retreat |
 | `has_howl` | bool | Dire Wolf only |
+| `howl_telegraph_seconds` | float | warning time before a Howl resolves |
 | `enrage_hp_fraction` | float | HP fraction (0-1) that triggers Enrage; 0 = no Enrage |
 | `enrage_damage_multiplier` | float | applied to bite damage while enraged |
 

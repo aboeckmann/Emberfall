@@ -33,26 +33,34 @@ XP required to go from skill level N to N+1: `round(20 * N^1.5)`. Grows with lev
 - Relative-difficulty scaling (harder actions/enemies grant proportionally more bucket XP) is deferred until a second enemy exists to calibrate against — see per-action values below for the Prototype's fixed case.
 
 ### Per-Action Bucket XP — Prototype (Sword vs. Wolf)
-Difficulty multiplier fixed at 1.0 (single-enemy prototype; relative scaling TBD).
+Difficulty multiplier fixed at 1.0 (single-enemy prototype; relative scaling TBD). Attack rows trigger on player actions; the defense rows trigger on successful *passive* defense checks (see Defense Resolution below).
 
-| Action | Skill Trained | Bucket XP |
+| Trigger | Skill Trained | Bucket XP |
 |---|---|---|
 | Successful Attack lands | Blades | +2 |
 | Successful Heavy Attack lands | Blades | +4 |
-| Successful Parry | Parry | +3 |
-| Successful Dodge | Evasion | +2 |
-| Successful Guard | Guard | +1 |
+| Successful passive Parry | Parry | +3 |
+| Successful passive Dodge | Evasion | +2 |
+| Successful passive Block | Guard | +1 |
 
 ## Combat
+
+Combat is real-time and cooldown-paced (2026-07-04 — see `CHANGELOG.md`); all durations below are in seconds.
+
+### Player Action Cooldowns
+One shared cooldown gate: using any action locks all actions for that action's duration.
+- Attack: 2.0s
+- Heavy Attack: 4.0s
+- Stance change: 3.0s
 
 ### Player HP
 - Max HP = `50 + (Vitality * 5)` (see Core Attributes above). At placeholder Vitality 10 = 100.
 
 ### Stamina
 - Pool = `50 + (Vitality * 5)` (see Core Attributes above). At placeholder Vitality 10 = 100.
-- Regen: +5 per turn by default; +10 per turn if the turn's action was Guard or Wait.
-- Costs (finalized for Prototype; supersedes the directional examples previously in `04_Combat_Design.md`): Attack -10, Heavy Attack -20, Dodge -15, Parry -8, Reposition/Sprint -12.
-- Low Stamina threshold: below 20, outgoing damage -25% and Guard/Parry effectiveness -25% (this is the "attacks become slower and defense weakens" pacing effect referenced in `04_Combat_Design.md`).
+- Regen: 4/second; 6/second while in the Guarded stance.
+- Action costs: Attack -10, Heavy Attack -20, Stance change -12. Passive defense costs on success: Parry -8, Dodge -15, Block 0.
+- Low Stamina threshold: below 20, outgoing damage -25% and passive defense chances -25% (this is the "attacks become slower and defense weakens" pacing effect referenced in `04_Combat_Design.md`).
 
 ### Damage Formula (Prototype: Sword)
 ```
@@ -72,18 +80,29 @@ Attack Damage = (WeaponBaseDamage + floor(BladesSkill / 10)) x PositionModifier 
 ### Threat and Balance
 - Threat generated per hit = `Damage Dealt x (1 + Presence/100)`. Enemies target whoever holds highest threat (single-target only until a second enemy/pack exists to matter).
 - Balance (formerly "Initiative", renamed 2026-07-04): one shared meter per fight, range 0-100. 100 = player in full control, 0 = enemy in full control. **Every fight starts at 50 (neutral).**
-- Balance deltas: +10 on landing a hit, +15 on a successful Parry, +5 on a successful Dodge, -15 when hit by an enemy attack.
+- Balance deltas: +10 on landing a hit, +15 on a successful passive Parry, +5 on a successful passive Dodge, +3 on a successful passive Block, -15 when hit by an enemy attack.
 - At Balance >= 75: player unlocks one free bonus action (a Heavy Attack with no Stamina cost and no telegraph) usable once before Balance drops back below 75. (Threshold raised from the old 50 when the neutral start moved to 50 — the reward should require earned advantage, not the opening bell. Not yet implemented in the encounter loop.)
 
 ### Mana / Focus
 _TBD — out of Prototype scope (no spellcasting weapon/enemy in the Prototype)._
 
-### Defense Resolution (Prototype)
-Not previously specified anywhere — added when implementing the combat encounter loop. Deterministic first pass: no separate success-chance roll, since the enemy telegraphs one round ahead specifically so a correctly-timed defensive choice should work.
-- **Parry**: fully negates the incoming attack (0 damage) if the equipped weapon's `can_parry` is true; otherwise the attack lands in full.
-- **Dodge**: fully negates the incoming attack (0 damage).
-- **Guard**: reduces incoming damage by 50%, further reduced by the low-Stamina penalty (`x0.75`) when applicable.
-- Choosing an offensive action (Attack/Heavy Attack) instead of a defensive one while an attack is resolving takes the full hit — trading blows is a valid, deliberate choice, not a mistake the game corrects for you.
+### Defense Resolution (Prototype — passive)
+Reworked 2026-07-04: defense is no longer a player selection. When an enemy attack lands, checks run automatically in order **Parry → Dodge → Block**; the first success wins; all failing means a full hit.
+
+Each check's chance:
+```
+chance = BaseChance
+       + (DefenderSkill - AttackerSkill) x 0.5% per point
+       + StanceModifier
+       + (Balance - 50) x 0.2% per point
+       [x 0.75 if defender is at low Stamina]
+clamped to [0%, 60%]
+```
+- Base chances: Parry 20% (only if the equipped weapon's `can_parry` is true — otherwise skipped), Dodge 15%, Block 25%.
+- Defender skills checked: Parry / Evasion / Guard respectively, vs. the enemy's `attack_skill`.
+- Stance modifiers: Frontline -10%, Balanced 0%, Guarded +15%.
+- Outcomes: Parry negates (Balance +15, Stamina -8, trains Parry), Dodge negates (Balance +5, Stamina -15, trains Evasion), Block halves damage (Balance +3, no Stamina cost, trains Guard), full hit (Balance -15).
+- The 60% per-check cap is deliberate: even a master can be hit, and stacking all three checks still leaves real danger.
 
 ## Equipment (Prototype)
 
@@ -102,18 +121,22 @@ Schema: `02_Technical_Design_Document.md` — Data Schemas.
 ### Wolf (Prototype enemy)
 - HP: 60
 - Bite (standard attack) damage: 8-14
-- Behavior: circles for the first 2 rounds before engaging; telegraphs "Wolf lunges!" one round before a Bite; retreats below 25% HP for 3 rounds (first-pass number for "several rounds"), then re-engages regardless of HP — the encounter loop doesn't model a spatial/cornering system, so "re-engages if cornered" is simplified to "retreat always expires."
+- Attack skill: 10 (checked against the player's passive defenses — see Defense Resolution)
+- Timings: circles for 4.0s at the fight's start; Bite telegraph 1.5s; recovery between attacks 3.0s.
+- Retreat: below 25% HP, backs off for 6.0s (once per fight), then re-engages regardless — no spatial/cornering system, so "re-engages if cornered" is simplified to "retreat expires."
 - Defense: high innate Evasion (~20% chance to avoid an incoming Attack), low Guard.
-- On landing a Bite: Wolf becomes "Emboldened" (+25% Bite damage) until Balance returns to 50 (neutral) or higher (see Threat and Balance above).
+- On landing a Bite: Wolf becomes "Emboldened" (+25% Bite damage) until Balance returns to 50 (neutral) or higher (see Threat and Balance above). _Not yet implemented._
 
 ### Dire Wolf (Prototype boss)
 A boss version of the Wolf — same base template, one added ability, and a personality shift that makes it feel distinctly boss-tier rather than a reskinned trash mob.
 
 - HP: 220 (vs. Wolf's 60)
 - Bite damage: 16-24 (vs. Wolf's 8-14)
-- Behavior: unlike the regular Wolf, does **not** circle at range or retreat at low HP — it stays aggressive at all times. Bite telegraphs the same way ("Dire Wolf lunges!").
-- Defense: same baseline as Wolf (~20% innate Evasion, low Guard) — the fight is harder because of damage/HP/Howl, not because it's evasive.
-- **Howl (new ability):** telegraphed one round ahead ("Dire Wolf throws back its head and howls!"). On resolving, Balance is immediately slammed to 0 — full enemy control (see Threat and Balance above — this is the mechanical embodiment of "when enemies seize Balance, they become more dangerous" from `04_Combat_Design.md`). Triggers once at the start of the fight and again the first time its HP drops below 50%.
+- Attack skill: 25 (vs. Wolf's 10) — noticeably harder to passively defend against
+- Timings: no opening circling — engages immediately; Bite telegraph 1.2s (faster than the Wolf's 1.5s); recovery between attacks 2.5s.
+- Behavior: unlike the regular Wolf, never retreats — it stays aggressive at all times.
+- Defense: same baseline as Wolf (~20% innate Evasion, low Guard) — the fight is harder because of damage/HP/tempo/Howl, not because it's evasive.
+- **Howl (new ability):** telegraphed 2.0s ahead ("Dire Wolf throws back its head..."). On resolving, Balance is immediately slammed to 0 — full enemy control (see Threat and Balance above — this is the mechanical embodiment of "when enemies seize Balance, they become more dangerous" from `04_Combat_Design.md`). Triggers once at the start of the fight and again the first time its HP drops below 50%.
 - **Enrage (below 33% HP):** Bite damage +30%, permanently (no threshold to escape it by fleeing, since it never retreats).
 
 ## Economy
