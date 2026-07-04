@@ -68,7 +68,7 @@ Full detail: `05_Skills_And_Progression.md`
 
 ## Guilds (Overview)
 
-Players do not begin in a guild. Guilds represent long-term training philosophies rather than permanent character classes. Guilds require minimum skill levels and initiation quests. Players begin with one active guild; additional guilds may unlock later through progression.
+Players do not begin in a guild. Guilds represent long-term training philosophies rather than permanent character classes. Guilds require minimum skill levels and initiation quests, so new characters start guildless and earn their first guild through play; additional guilds may unlock later through progression.
 
 Initial guild concepts: Ironbound, Wildpath, Dawnwardens, Veilcasters, Ashborn, Lantern Covenant, Stormkin, Silent Hand.
 
@@ -113,7 +113,8 @@ Systems referenced in design discussion but not yet fully defined. Tracked here 
 | Skill formulas, mastery, skill caps, practice system | 05_Skills_And_Progression.md / 11_Balance_Bible.md | Partial — bucket-based skill gain + Prototype curve defined; mastery/caps still TBD |
 | Damage formulas, threat generation, criticals, status effects | 04_Combat_Design.md / 11_Balance_Bible.md | Partial — Sword vs. Wolf/Dire Wolf fully defined for Prototype; status effects still TBD |
 | Enemy AI (beyond the four personality examples) | 04_Combat_Design.md | Partial — Wolf + Dire Wolf (boss) defined for Prototype |
-| Character creation: attribute assignment method, attribute growth over time | 05_Skills_And_Progression.md | TBD — placeholder flat starting values in use for Prototype dev |
+| Character creation: full flow (attribute allocation method, appearance) | 03_Game_Systems.md | Partial — Prototype-minimal flow defined (fixed attributes, guildless start, auto-equip); allocation method and appearance still TBD |
+| Core attribute growth over time (post-creation) | 05_Skills_And_Progression.md | TBD |
 | Discovery, fast travel, hidden locations | 07_World_Design.md | TBD |
 | Loot generation, vendors, crafting, trading | 09_Economy_And_Crafting.md | TBD |
 | Async interactions, guild systems, social features | 03_Game_Systems.md | TBD |

@@ -10,7 +10,7 @@ Players do not begin in a guild. Guilds represent long-term training philosophie
 
 - Guilds require minimum skill levels.
 - Guilds require initiation quests.
-- Players begin with one active guild.
+- New characters start guildless (see `03_Game_Systems.md` — Character Creation) and earn their first guild through play once they meet its skill requirement and complete its initiation quest.
 - Additional guilds may unlock later through progression.
 
 ## Guilds Unlock

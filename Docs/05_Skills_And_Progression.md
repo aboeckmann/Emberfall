@@ -32,7 +32,7 @@ Governs physical resilience: maximum HP and maximum Stamina (see `04_Combat_Desi
 ### Willpower
 Governs mental/magical resilience: maximum Mana and maximum Focus (see `04_Combat_Design.md` — Resources, Magic). Out of scope for the Prototype (no spellcasting weapon/enemy exists yet), but defined now so the attribute trio is consistent.
 
-Starting values are assigned at character creation. The assignment method (point-buy, rolled, archetype-based starting spreads, etc.) is _TBD_ — see `01_Game_Design_Document.md` Open Systems Tracker. Growth over time (how, or whether, these rise post-creation) is also _TBD_. First-pass starting values and the resulting pool sizes, used for Prototype development before character creation exists: `11_Balance_Bible.md`.
+Starting values are assigned at character creation (see `03_Game_Systems.md` — Character Creation). The real assignment method (point-buy, rolled, archetype-based starting spreads, etc.) is _TBD_; the Prototype uses a fixed placeholder spread instead. Growth over time (how, or whether, these rise post-creation) is also _TBD_. First-pass starting values and the resulting pool sizes: `11_Balance_Bible.md`.
 
 ---
 
@@ -87,7 +87,7 @@ Techniques are unlocked through combinations of skill progression and define a p
 
 - Skill caps (prototype assumes 0–100 per skill; not finalized)
 - Mastery
-- Character creation: attribute assignment method
+- Attribute allocation method at character creation (see `03_Game_Systems.md` — Character Creation for the Prototype-minimal flow)
 - Core attribute growth over time (post-creation)
 
 Skill gain formula and the Practice system are now conceptually defined — see `03_Game_Systems.md` (Skill Gain, Practice, Rest). Numeric curves for the above belong in `11_Balance_Bible.md` once defined.

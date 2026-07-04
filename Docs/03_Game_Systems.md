@@ -6,6 +6,20 @@ Cross-cutting systems that connect the rest of the game together.
 
 ---
 
+## Character Creation
+
+Status: Prototype-minimal only. The full character creation experience — attribute allocation method and appearance customization — is undesigned, since both the real attribute-assignment method (`05_Skills_And_Progression.md`) and the visual style (`12_Art_Direction.md`) are still TBD. For the Prototype, creating a character involves no meaningful choices beyond naming:
+
+1. **Name** — player enters a character name.
+2. **Attributes** — fixed placeholder spread: Intellect 10, Vitality 10, Willpower 10 (see `11_Balance_Bible.md`). No allocation UI yet.
+3. **Skills** — every skill starts at level 0 with an empty bucket (see Skill Gain below).
+4. **Guild** — none. Guild membership requires minimum skill levels and an initiation quest (see `06_Guilds.md`), neither of which a new character can meet, so new characters start guildless and earn their first guild through play.
+5. **Equipment** — auto-equipped with the Sword, the Prototype's only weapon (see `09_Economy_And_Crafting.md`). No loadout choice, since no alternative exists yet.
+6. **Renown** — starts at 0.
+7. **Starting location** — placed in the Bastion at its lowest tier, Ember/Campfire (see `08_Bastion_System.md`).
+
+Future, non-Prototype: attribute allocation method (point-buy / rolled / archetype-based spreads), appearance customization, any starting narrative/tutorial framing.
+
 ## Renown
 
 Renown represents a character's accomplishments and reputation throughout the world.
