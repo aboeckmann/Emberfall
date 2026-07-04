@@ -8,14 +8,25 @@ Status: Prototype-scope combat and skill-gain numbers drafted (2026-07-04), cove
 
 ---
 
+## Core Attributes
+
+Character creation doesn't exist yet, so the values below are a flat placeholder spread (not a point-buy result) used to unblock Prototype development. Real starting-value ranges/allocation are _TBD_ — see `05_Skills_And_Progression.md`.
+
+| Attribute | Placeholder Starting Value | Governs | Pool Formula | Prototype Pool Size |
+|---|---|---|---|---|
+| Intellect | 10 | Skill bucket cap | `50 + (Intellect * 5)` | 100 |
+| Vitality | 10 | Max HP, Max Stamina | `50 + (Vitality * 5)` | 100 / 100 |
+| Willpower | 10 | Max Mana, Max Focus | `50 + (Willpower * 5)` | 100 / 100 (unused — no caster in Prototype) |
+
+Using one shared formula shape across all three is a first-pass simplification for consistency, not a permanent constraint — nothing requires the three pools to scale identically once real balancing starts.
+
 ## Skills
 
 ### Skill Level Curve
 XP required to go from skill level N to N+1: `round(20 * N^1.5)`. Grows with level so early skill-ups come fast and later ones take real investment. Skill cap: 100 (see `05_Skills_And_Progression.md` — not finalized).
 
 ### Skill Gain Bucket (see `03_Game_Systems.md` — Skill Gain)
-- **Bucket cap** (per skill) = `50 + (Intellect * 5)`.
-- **Intellect starting value**: 10 (flat for all new characters — no character-creation allocation yet). Starting bucket cap = 100.
+- **Bucket cap** (per skill) = `50 + (Intellect * 5)` (see Core Attributes above). At placeholder Intellect 10, cap = 100.
 - **Passive drain rate** (anywhere, always on): 1% of current bucket contents converted to skill XP per minute.
 - **Bastion Rest drain rate**: 10% of current bucket contents per minute while resting (10x passive rate).
 - A full bucket does not block further actions — actions still resolve normally, they just stop granting bucket XP until it drains some.
@@ -34,8 +45,11 @@ Difficulty multiplier fixed at 1.0 (single-enemy prototype; relative scaling TBD
 
 ## Combat
 
+### Player HP
+- Max HP = `50 + (Vitality * 5)` (see Core Attributes above). At placeholder Vitality 10 = 100.
+
 ### Stamina
-- Pool: 100.
+- Pool = `50 + (Vitality * 5)` (see Core Attributes above). At placeholder Vitality 10 = 100.
 - Regen: +5 per turn by default; +10 per turn if the turn's action was Guard or Wait.
 - Costs (finalized for Prototype; supersedes the directional examples previously in `04_Combat_Design.md`): Attack -10, Heavy Attack -20, Dodge -15, Parry -8, Reposition/Sprint -12.
 - Low Stamina threshold: below 20, outgoing damage -25% and Guard/Parry effectiveness -25% (this is the "attacks become slower and defense weakens" pacing effect referenced in `04_Combat_Design.md`).
@@ -72,8 +86,15 @@ _TBD — out of Prototype scope (no spellcasting weapon/enemy in the Prototype).
 - Defense: high innate Evasion (~20% chance to avoid an incoming Attack), low Guard.
 - On landing a Bite: Wolf becomes "Emboldened" (+25% Bite damage) until the player regains Initiative (see Threat and Initiative above).
 
-### Boss (Prototype)
-_Not yet chosen/statted — Roadmap calls for one boss in the Prototype; needs a specific enemy selected before it can be balanced._
+### Dire Wolf (Prototype boss)
+A boss version of the Wolf — same base template, one added ability, and a personality shift that makes it feel distinctly boss-tier rather than a reskinned trash mob.
+
+- HP: 220 (vs. Wolf's 60)
+- Bite damage: 16-24 (vs. Wolf's 8-14)
+- Behavior: unlike the regular Wolf, does **not** circle at range or retreat at low HP — it stays aggressive at all times. Bite telegraphs the same way ("Dire Wolf lunges!").
+- Defense: same baseline as Wolf (~20% innate Evasion, low Guard) — the fight is harder because of damage/HP/Howl, not because it's evasive.
+- **Howl (new ability):** telegraphed one round ahead ("Dire Wolf throws back its head and howls!"). On resolving, Dire Wolf's Initiative is immediately set to 100, seizing full control of the fight (see Threat and Initiative above — this is the mechanical embodiment of "when enemies seize Initiative, they become more dangerous" from `04_Combat_Design.md`). Triggers once at the start of the fight and again the first time its HP drops below 50%.
+- **Enrage (below 33% HP):** Bite damage +30%, permanently (no threshold to escape it by fleeing, since it never retreats).
 
 ## Economy
 - Loot %: _TBD_

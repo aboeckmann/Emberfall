@@ -15,7 +15,7 @@ _Not yet defined._
 Four enemy behavior archetypes exist as combat AI concepts — see `04_Combat_Design.md` (Wolf, Skeleton, Duelist, Ogre). None have lore, names, or bestiary entries yet.
 
 ## Bosses
-_Not yet defined._
+The Prototype's boss is the Dire Wolf, a boss version of the Wolf (stats/abilities in `11_Balance_Bible.md`, combat framing in `04_Combat_Design.md`). No lore/bestiary write-up beyond the name yet. No other bosses defined.
 
 ## Regions
 _Not yet defined._ See `07_World_Design.md` for the structural placeholder.

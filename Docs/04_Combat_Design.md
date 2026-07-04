@@ -115,8 +115,10 @@ Example costs:
 
 When stamina gets low, attacks become slower and defense weakens, which naturally paces the player.
 
+Max HP and max Stamina are both derived from the Vitality core attribute — see `05_Skills_And_Progression.md` (Core Attributes) and `11_Balance_Bible.md` for the formula.
+
 ### Magic — Mana + Focus
-Magic uses two resources instead of one:
+Magic uses two resources instead of one, both derived from the Willpower core attribute (see `05_Skills_And_Progression.md`):
 
 - **Mana** — the magical energy available.
 - **Focus** — mental concentration.
@@ -146,7 +148,7 @@ Every enemy has a personality — a wolf shouldn't fight like a knight.
 - **Duelist** — Parries often, punishes reckless attacks.
 - **Ogre** — Slow, crushing attacks, breaks guard.
 
-Players learn enemies instead of simply memorizing health bars. The Wolf is the Prototype's enemy (see `14_Roadmap.md`) — its concrete stats and behavior thresholds are defined in `11_Balance_Bible.md`. Additional enemy personalities and full Boss AI design: _TBD_ (the Prototype's boss is also unchosen — see Balance Bible).
+Players learn enemies instead of simply memorizing health bars. The Wolf is the Prototype's enemy and the Dire Wolf (a boss version of the Wolf) is the Prototype's boss (see `14_Roadmap.md`) — concrete stats and behavior for both are defined in `11_Balance_Bible.md`. Additional enemy personalities and full Boss AI design beyond the Dire Wolf: _TBD_.
 
 ---
 
