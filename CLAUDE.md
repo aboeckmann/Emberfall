@@ -4,9 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-Emberfall is a mobile-first fantasy RPG currently in the **design-only phase**. The repository contains no source code, build system, or tests yet — only design documents under `Docs/`. The tech stack itself is undecided (`02_Technical_Design_Document.md` lists Unity/PlayFab/Firebase as candidates, nothing finalized). Do not assume a stack, folder layout, or coding convention exists; if implementation work begins, the technical decisions and standards belong in `02_Technical_Design_Document.md`, and this file should be updated at that point with real build/lint/test commands.
+Emberfall is a mobile-first fantasy RPG. Design work happens in `Docs/`; the game itself is a **Godot 4.x** project scaffolded at the repo root (`project.godot`, `game/`, `scenes/`, `ui/`, `assets/`, `data/`, `tests/` — see `02_Technical_Design_Document.md` for what each folder is for). As of this scaffold there is no gameplay code yet, just the empty folder structure and a placeholder `scenes/Main.tscn`. Godot is not installed in this environment — there is no CLI build/lint/test command to run yet; opening/running the project requires the Godot 4.x editor.
 
-Until then, work in this repo means reading and editing the Markdown documents in `Docs/`.
+**The load-bearing rule**: game rules (combat math, skill gain, saves — anything in `11_Balance_Bible.md`) must live in `game/` as engine-agnostic GDScript with no scene/node/rendering/input dependencies. Scenes (`scenes/`, `ui/`) consume that layer; they never implement rules. This is what keeps the Balance Bible's formulas testable headlessly and the engine swappable if Godot is ever outgrown.
+
+Design documents in `Docs/` remain the source of truth for what to build — read the relevant doc(s) before implementing a system, since numbers live only in `11_Balance_Bible.md` and lore/content only in `10_Content_Bible.md` (see Document Architecture below).
 
 ## Document Architecture
 

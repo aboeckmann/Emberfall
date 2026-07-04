@@ -2,7 +2,7 @@
 
 Last Updated: 2026-07-04
 
-Status: core stack decided (2026-07-04). Backend intentionally deferred. Coding standards partially defined — the logic/presentation separation rule is set; the rest fills in as implementation starts. Prototype-scope equipment data schema defined (2026-07-04).
+Status: core stack decided (2026-07-04). Backend intentionally deferred. Coding standards partially defined — the logic/presentation separation rule is set; the rest fills in as implementation starts. Prototype-scope equipment data schema defined (2026-07-04). Project scaffolded at the repo root (2026-07-04): `project.godot` + the folder structure below exist, with an empty placeholder `scenes/Main.tscn`; no gameplay code written yet. Godot was not installed in the environment that created the scaffold, so it has not been opened/verified in the editor yet — do that before building on top of it.
 
 ---
 
@@ -43,16 +43,16 @@ This buys:
 
 ## Folder Structure
 
-Godot-style starting point (created when the project is initialized):
+Lives at the repo root, alongside `Docs/`:
 
 ```
-project/
-  game/          # engine-agnostic rules layer: combat, skills, saves, formulas
-  scenes/        # Godot scenes (screens, combat view, Bastion view)
-  ui/            # reusable UI components, themes
-  assets/        # art, audio, fonts
-  data/          # item/enemy/skill definitions (resource files)
-  tests/         # headless tests for the rules layer
+project.godot   # Godot project file
+game/           # engine-agnostic rules layer: combat, skills, saves, formulas
+scenes/         # Godot scenes (screens, combat view, Bastion view)
+ui/             # reusable UI components, themes
+assets/         # art, audio, fonts
+data/           # item/enemy/skill definitions (resource files)
+tests/          # headless tests for the rules layer
 ```
 
 ## Data Schemas
