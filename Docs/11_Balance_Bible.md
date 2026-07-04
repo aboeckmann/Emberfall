@@ -58,7 +58,7 @@ Difficulty multiplier fixed at 1.0 (single-enemy prototype; relative scaling TBD
 ```
 Attack Damage = (WeaponBaseDamage + floor(BladesSkill / 10)) x PositionModifier x VarianceRoll - EnemyDefense
 ```
-- Sword WeaponBaseDamage: 10
+- WeaponBaseDamage comes from the equipped weapon's data (see Equipment below); Sword = 10
 - Blades skill contributes +1 flat damage per 10 skill levels (skill 100 -> +10)
 - VarianceRoll: random between 0.85 and 1.15
 - PositionModifier: Frontline x1.2, Balanced x1.0, Guarded x0.8, Flanking x1.1 (Flanking's main benefit is Crit Chance, not this modifier — see below)
@@ -76,6 +76,18 @@ Attack Damage = (WeaponBaseDamage + floor(BladesSkill / 10)) x PositionModifier 
 
 ### Mana / Focus
 _TBD — out of Prototype scope (no spellcasting weapon/enemy in the Prototype)._
+
+## Equipment (Prototype)
+
+Schema: `02_Technical_Design_Document.md` — Data Schemas.
+
+### Sword (WeaponData instance)
+- `base_damage`: 10
+- `trained_skill`: Blades
+- `can_parry`: true
+- `stamina_cost_modifier`: 1.0 (baseline — no other weapon exists yet to compare against)
+- `slots_occupied`: [RightHand]
+- `appearance`: placeholder only — `equipment_type` = "Sword"; material/color_palette/ornament_layer undefined (`12_Art_Direction.md` is TBD)
 
 ## Enemies
 

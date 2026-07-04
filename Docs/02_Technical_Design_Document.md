@@ -2,7 +2,7 @@
 
 Last Updated: 2026-07-04
 
-Status: core stack decided (2026-07-04). Backend intentionally deferred. Coding standards partially defined — the logic/presentation separation rule is set; the rest fills in as implementation starts.
+Status: core stack decided (2026-07-04). Backend intentionally deferred. Coding standards partially defined — the logic/presentation separation rule is set; the rest fills in as implementation starts. Prototype-scope equipment data schema defined (2026-07-04).
 
 ---
 
@@ -54,6 +54,47 @@ project/
   data/          # item/enemy/skill definitions (resource files)
   tests/         # headless tests for the rules layer
 ```
+
+## Data Schemas
+
+Status: Prototype-scope only (the Sword). Broader equipment (armor, additional weapons) extends this shape as needed. Represented as Godot `Resource` subclasses (`.tres` files) living in `data/` per the Folder Structure above — data-driven and editable without touching code.
+
+### EquipmentSlot (enum)
+- Weapon: RightHand, LeftHand, Ranged
+- Armor: Chest, Legs, Hands, Head, Feet
+- Adventuring: Back, Backpack, Ring1, Ring2, Necklace, Belt
+
+(Design rationale for these slots: `09_Economy_And_Crafting.md`.)
+
+### EquipmentData (base resource)
+| Field | Type | Notes |
+|---|---|---|
+| `id` | String | unique key |
+| `display_name` | String | |
+| `slots_occupied` | Array[EquipmentSlot] | e.g. a Greatsword would be `[RightHand, LeftHand]` |
+| `appearance` | AppearanceData | see below |
+| `durability` | — | _TBD_ — not implemented for Prototype (see `09_Economy_And_Crafting.md`) |
+
+### WeaponData (extends EquipmentData)
+| Field | Type | Notes |
+|---|---|---|
+| `base_damage` | int | feeds the damage formula in `11_Balance_Bible.md` |
+| `trained_skill` | Skill enum | which skill this weapon trains on use (see `05_Skills_And_Progression.md`) |
+| `can_parry` | bool | whether Parry is available with this weapon equipped (see Weapon Feel, `04_Combat_Design.md`) |
+| `stamina_cost_modifier` | float | multiplies the base action Stamina costs in `11_Balance_Bible.md`; the hook for future weapon-feel differentiation (e.g. a Great Axe costing more Stamina per swing) — unused for the Prototype's single weapon |
+
+Concrete Prototype values (the Sword instance): `11_Balance_Bible.md`.
+
+### ArmorData (extends EquipmentData)
+Deferred — no armor exists in Prototype scope (see `14_Roadmap.md`). Fields TBD when armor is added.
+
+### AppearanceData
+| Field | Type | Notes |
+|---|---|---|
+| `equipment_type` | String | e.g. `"Sword"` |
+| `material` | String | no material list defined yet — _TBD_ |
+| `color_palette` | String/enum | no palette defined yet — _TBD_, see `12_Art_Direction.md` |
+| `ornament_layer` | String | no ornament system defined yet — _TBD_ |
 
 ## Backend Architecture
 

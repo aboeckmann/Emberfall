@@ -6,6 +6,9 @@ Every major design decision gets recorded here.
 
 ## 2026-07-04
 
+**Defined the equipment data schema (Prototype scope: the Sword only).**
+Reason: `09_Economy_And_Crafting.md` established the Gameplay Data / Appearance Data split conceptually but never gave it concrete fields, so there was nothing to build the Sword against. Added `EquipmentSlot`, `EquipmentData`, `WeaponData`, and `AppearanceData` schemas to `02_Technical_Design_Document.md`, modeled as Godot `Resource` subclasses per the existing `data/` folder convention. `WeaponData` includes `stamina_cost_modifier` and `can_parry` as hooks for future Weapon Feel differentiation (Great Axe, Bow, etc. per `04_Combat_Design.md`) even though only the Sword exists right now, since those fields are direct implications of already-documented design rather than new speculation. Armor's schema is deferred — no armor exists in Prototype scope. Concrete Sword values recorded in `11_Balance_Bible.md`.
+
 **Defined a Prototype-minimal character creation flow, and fixed a contradiction in the guild-start rules.**
 Reason: `06_Guilds.md` and `01_Game_Design_Document.md` both said "players do not begin in a guild" and "players begin with one active guild" in the same breath. Resolved in favor of guildless start — guilds require minimum skill levels and an initiation quest, neither of which a level-0 character can satisfy, so the Prototype's one guild is earned through play rather than granted at creation. Character creation itself (`03_Game_Systems.md`) is scoped to Prototype-minimal: name entry, a fixed placeholder attribute spread (Intellect/Vitality/Willpower 10/10/10), all skills at 0, guildless, auto-equipped with the Sword, 0 Renown, dropped into the Bastion at Ember tier. No attribute allocation UI or appearance customization yet — both remain open questions pending the real attribute-assignment method and Art Direction.
 

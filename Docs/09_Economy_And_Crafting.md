@@ -21,6 +21,8 @@ Equipment contains two independent components:
 - Bonuses
 - Durability (TBD)
 
+Concrete schema (field names/types) and the Prototype's Sword instance: `02_Technical_Design_Document.md` (Data Schemas) and `11_Balance_Bible.md`.
+
 ### Appearance Data
 Appearance is generated from reusable visual templates, consisting of:
 
@@ -29,7 +31,7 @@ Appearance is generated from reusable visual templates, consisting of:
 - Color Palette
 - Ornament Layer
 
-This allows thousands of visual combinations while keeping the art pipeline manageable. Visual style rules: see `12_Art_Direction.md`.
+This allows thousands of visual combinations while keeping the art pipeline manageable. Visual style rules: see `12_Art_Direction.md`. Schema: `02_Technical_Design_Document.md` (Data Schemas) — currently just Equipment Type is populated for the Prototype's Sword; Material/Color Palette/Ornament Layer await Art Direction.
 
 ### Equipment Slots
 
